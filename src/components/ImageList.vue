@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import {ref} from 'vue'
-import {TagData} from '../types'
+import {TagData} from '../lib/types'
 
 const props = defineProps<{
   dataset: TagData[]
 }>()
 
 const emit = defineEmits<{
-  select: TagData[]
+  select: { index: number }[]
 }>()
 </script>
 
 <template>
   <div class="image-list">
-    <div class="item" v-for="item in props.dataset" v-on:click="emit('select', [item])">
+    <div class="item" v-for="(item, index) in props.dataset"
+         v-on:click="emit('select', [{ index: index }])">
       <img class="image" :src="item.url"/>
     </div>
   </div>
