@@ -19,6 +19,13 @@ fn listdir(path: &str) -> Vec<TagData> {
         .collect::<Vec<_>>()
 }
 
+#[tauri::command]
+fn save_text(path: &str, text: &str) -> bool {
+    let mut pb = PathBuf::from(path);
+    pb.set_extension("txt");
+    fs::write(pb, text).is_ok()
+}
+
 fn read_item(path: PathBuf) -> Option<TagData> {
     path.extension().and_then(|ext| {
         if ext == "png" || ext == "jpg" {
@@ -91,7 +98,7 @@ fn read_txt_tags(txt: String) -> Vec<String> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![listdir])
+        .invoke_handler(tauri::generate_handler![listdir, save_text])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

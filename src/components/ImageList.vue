@@ -11,17 +11,25 @@ const props = defineProps<{
 const selected = ref<TagData[]>()
 
 const emit = defineEmits<{
-  select: { index: number }[]
+  select: { index: number }[],
+  openFolder: void
 }>()
 
 watch(selected, value => {
-  emit('select', value?.map(x => { return { index: x.key } }))
+  emit('select', value?.map(x => {
+    return {index: x.key}
+  }))
 })
 </script>
 
 <template>
   <DataTable :value="props.dataset"
              v-model:selection="selected" selection-mode="multiple" class="image-list">
+    <template #empty>
+      <div class="empty-list" v-on:click="emit('openFolder')">
+        Open a folder and continue.
+      </div>
+    </template>
     <Column field="url">
       <template #body="{ index, data }">
         <div>
@@ -33,6 +41,10 @@ watch(selected, value => {
 </template>
 
 <style scoped>
+.empty-list {
+  cursor: pointer;
+}
+
 .image-list {
   width: 100%;
   height: 100%;

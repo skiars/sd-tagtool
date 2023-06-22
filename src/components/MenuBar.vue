@@ -18,6 +18,10 @@ const items = ref([{
     label: 'Open',
     icon: 'pi pi-fw pi-plus',
     command: action(Menu.Open)
+  },{
+    label: 'Save',
+    icon: 'pi pi-fw pi-save',
+    command: action(Menu.Save)
   }, {
     label: 'Quit',
     icon: 'pi pi-fw pi-power-off',

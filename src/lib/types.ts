@@ -7,6 +7,7 @@ export interface TagData {
 
 export enum Menu {
   Open,
+  Save,
   Quit,
   Undo,
   Redo

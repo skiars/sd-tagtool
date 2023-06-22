@@ -19,14 +19,16 @@ import {exit} from '@tauri-apps/api/process'
 
 let tagEditor: TagEditor
 let tagInsPos: number | undefined = undefined
-const workDir = ref<string>('')
+let workDir: string = ''
 const dataset = ref<TagData[]>([])
 const selected = ref<number[]>([])
 const selTags = ref(collectTags())
 const allTags = ref(collectTags())
 const editAllTags = ref(false)
 
-async function openDir(path: string) {
+async function openFolder(path?: string) {
+  if (!path)
+    path = await open({directory: true}) as string
   const files: {
     name: string,
     tags: string[]
@@ -41,14 +43,12 @@ async function openDir(path: string) {
       tags: v.tags
     })
   }
-  workDir.value = path
+  workDir = path
   dataset.value = data
   selected.value = []
   updateTags(data)
   tagEditor = new TagEditor(dataset.value)
 }
-
-openDir('E:/diffusion/dataset/reg')
 
 function selectedTags(d: { index: number }[]) {
   selected.value = d.map(x => x.index)
@@ -77,14 +77,24 @@ function onDeleteTags(collect: CollectTags, tags: string[]) {
 
 function onInsertTags(tags: string[]) {
   const sel: Set<number> = new Set(selected.value)
-  const edit = insertTags(dataset.value.filter(x => sel.has(x.key)), tags, tagInsPos)
+  const data = dataset.value.filter(x => sel.has(x.key))
+  const edit = insertTags(data, tags, tagInsPos)
   updateTags(tagEditor.edit(edit))
 }
 
 async function onMenuAction(action: Menu) {
   switch (action) {
     case Menu.Open:
-      await openDir(await open({directory: true}) as string)
+      await openFolder()
+      break
+    case Menu.Save:
+      await Promise.all(dataset.value.map(async x => {
+        await invoke("save_text", {
+          path: await join(workDir, x.name),
+          text: x.tags.join(', ')
+        })
+      }))
+      alert('All content has been saved!')
       break
     case Menu.Quit:
       await exit(0)
@@ -97,7 +107,6 @@ async function onMenuAction(action: Menu) {
       break
   }
 }
-
 </script>
 
 <template>
@@ -106,7 +115,9 @@ async function onMenuAction(action: Menu) {
   </header>
   <Splitter class="main-content">
     <SplitterPanel :size="20">
-      <ImageList :dataset="dataset" v-on:select="selectedTags($event)"/>
+      <ImageList :dataset="dataset"
+                 v-on:select="selectedTags($event)"
+                 v-on:openFolder="openFolder()"/>
     </SplitterPanel>
     <SplitterPanel :size="80">
       <Splitter layout="vertical">
@@ -122,7 +133,7 @@ async function onMenuAction(action: Menu) {
         </SplitterPanel>
         <SplitterPanel class="column-flex">
           <TagList style="flex-grow: 1" :tags="allTags.tags"
-                   :editable="editAllTags" ondrag
+                   :editable="editAllTags" nodrag
                    v-on:delete="onDeleteTags(allTags, $event)"
                    v-on:active="onInsertTags($event)"/>
         </SplitterPanel>
@@ -144,6 +155,7 @@ footer {
 }
 
 .column-flex {
+  margin: 0.5em;
   display: flex;
   flex-direction: column;
   overflow-y: hidden;

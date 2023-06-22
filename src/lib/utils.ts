@@ -94,13 +94,16 @@ export function deleteTags(dataset: TagData[], collect: CollectTags, tags: strin
 
 export function insertTags(dataset: TagData[],
                            tags: string[],
-                           position: number | undefined)
-  : EditAction[] {
-  let ts: Set<string> = new Set(tags)
+                           position: number | undefined): EditAction[] {
+  let ts: Set<string> = new Set
+  // Remove duplicates and empty items
+  tags = tags.filter(x => x && !ts.has(x) && ts.add(x))
+  if (!tags.length)
+    return []
   return dataset.map(x => {
     let s1: string[] = x.tags.filter(a => !ts.has(a))
     let s2: string[] = []
-    if (typeof(position) == 'number') {
+    if (typeof (position) == 'number') {
       if (position >= 0)
         s2 = s1.splice(position, s1.length)
       else
