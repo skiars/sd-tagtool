@@ -1,6 +1,7 @@
-import {TagData} from "./types";
+import {TagData} from './types'
+import {ref} from 'vue'
 
-export interface EditAction {
+interface EditAction {
   index: number,
   tags: string[]
 }
@@ -50,4 +51,23 @@ export class TagEditor {
   public dataset: TagData[]
   private undoStack: EditAction[][] = []
   private redoStack: EditAction[][] = []
+}
+
+export interface CollectTags {
+  collect: Map<string, Set<number>>
+  tags: string[]
+}
+
+export function collectTags(dataset: TagData[] = []) {
+  let collect: CollectTags = {
+    collect: new Map<string, Set<number>>,
+    tags: []
+  }
+  dataset.forEach(x => x.tags.forEach(t => {
+    if (!collect.collect.get(t)?.add(x.key)) {
+      collect.tags.push(t)
+      collect.collect.set(t, new Set<number>([x.key]))
+    }
+  }))
+  return collect
 }

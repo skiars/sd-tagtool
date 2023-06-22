@@ -1,23 +1,19 @@
 <script setup lang="ts">
-import {computed} from 'vue'
+import {ref, watch} from 'vue'
 import draggable from 'vuedraggable';
 import Tag from './Tag.vue'
 
 const props = defineProps<{
-  modelValue: string[]
+  tags: string[]
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const tags = ref<string[]>([])
+watch(() => props.tags, x => tags.value = x)
 
-const tags = computed({
-  get() {
-    return props.modelValue
-  },
-  set(v: string[]) {
-    emit('update:modelValue', v)
-  }
-})
-
+const emit = defineEmits<{
+  change: string[]
+  remove: string[]
+}>()
 </script>
 
 <template>
@@ -25,16 +21,18 @@ const tags = computed({
              v-model="tags"
              :item-key="(x: string) => x"
              ghost-class="ghost"
-             :animation="200">
-    <template #item="{ element, index }">
+             :animation="200"
+             v-on:change="emit('change', $event)">
+    <template #item="{ element }">
       <Tag class="list-group-item tag-item" removable :label="element"
-           v-on:remove="tags = tags.filter((_, i) => i != index)"/>
+           v-on:remove="emit('remove', [element])"/>
     </template>
   </draggable>
 </template>
 
 <style scoped>
 .tag-list {
+  min-height: 5em;
   display: flex;
   flex-wrap: wrap;
   overflow-y: auto;

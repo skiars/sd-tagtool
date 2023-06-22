@@ -47,7 +47,7 @@ const items = ref([{
 </template>
 
 <style scoped>
-.p-menubar-button {
-  display: none;
+.p-menubar {
+  padding: 0.25rem;
 }
 </style>

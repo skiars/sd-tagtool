@@ -1,22 +1,35 @@
 <script setup lang="ts">
+import {ref, watch} from 'vue'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
 import {TagData} from '../lib/types'
 
 const props = defineProps<{
   dataset: TagData[]
 }>()
 
+const selected = ref<TagData[]>()
+
 const emit = defineEmits<{
   select: { index: number }[]
 }>()
+
+watch(selected, value => {
+  emit('select', value?.map(x => { return { index: x.key } }))
+})
 </script>
 
 <template>
-  <div class="image-list">
-    <div class="item" v-for="(item, index) in props.dataset"
-         v-on:click="emit('select', [{ index: index }])">
-      <img class="image" :src="item.url"/>
-    </div>
-  </div>
+  <DataTable :value="props.dataset"
+             v-model:selection="selected" selection-mode="multiple" class="image-list">
+    <Column field="url">
+      <template #body="{ index, data }">
+        <div>
+          <img class="image" :src="data.url"/>
+        </div>
+      </template>
+    </Column>
+  </DataTable>
 </template>
 
 <style scoped>
@@ -43,5 +56,11 @@ const emit = defineEmits<{
   height: 100%;
   object-fit: scale-down;
   text-align: center;
+}
+</style>
+
+<style>
+.image-list table thead {
+  display: none;
 }
 </style>
