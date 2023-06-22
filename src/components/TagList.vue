@@ -4,28 +4,33 @@ import draggable from 'vuedraggable';
 import Tag from './Tag.vue'
 
 const props = defineProps<{
-  tags: string[]
+  tags: string[],
+  nodrag?: true | boolean,
+  editable?: true | boolean
 }>()
 
 const tags = ref<string[]>([])
 watch(() => props.tags, x => tags.value = x)
 
 const emit = defineEmits<{
-  change: string[]
-  remove: string[]
+  sorted: string[]
+  delete: string[],
+  active: string[]
 }>()
 </script>
 
 <template>
   <draggable class="tag-list"
              v-model="tags"
+             :disabled="nodrag"
              :item-key="(x: string) => x"
              ghost-class="ghost"
              :animation="200"
-             v-on:change="emit('change', $event)">
+             v-on:end="emit('sorted', tags)">
     <template #item="{ element }">
-      <Tag class="list-group-item tag-item" removable :label="element"
-           v-on:remove="emit('remove', [element])"/>
+      <Tag class="list-group-item tag-item" :removable="props.editable" :label="element"
+           v-on:delete="emit('delete', [element])"
+           v-on:dblclick="emit('active', [element])"/>
     </template>
   </draggable>
 </template>
