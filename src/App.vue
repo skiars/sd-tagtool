@@ -94,7 +94,7 @@ async function menuAction(menu: string) {
       break
     case 'save':
       await Promise.all(dataset.value.map(async x => {
-        await invoke('save_text', {
+        await invoke('save_tags', {
           path: await join(workDir, x.name),
           text: x.tags.join(', ')
         })
@@ -148,7 +148,7 @@ listen('translate', event => {
           <TagInput style="flex-shrink: 0"
                     v-model:editAllTags="editAllTags"
                     v-on:updatePosition="x => tagInsPos = x"
-                    v-on:updateText="onInsertTags"/>
+                    v-on:updateTags="onInsertTags"/>
         </SplitterPanel>
         <SplitterPanel class="column-flex">
           <TagList style="flex-grow: 1" :tags="allTags.tags"

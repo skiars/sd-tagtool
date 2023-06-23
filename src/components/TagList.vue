@@ -29,8 +29,8 @@ const emit = defineEmits<{
              :animation="200"
              v-on:end="emit('sorted', tags)">
     <template #item="{ element }">
-      <Tag class="list-group-item tag-item" :label="element"
-           :removable="props.editable" :translate="props.translate"
+      <Tag class="list-group-item tag-item" :style="nodrag ? null : 'cursor: move'"
+           :label="element" :removable="props.editable" :translate="props.translate"
            v-on:delete="emit('delete', [element])"
            v-on:dblclick="emit('active', [element])"/>
     </template>

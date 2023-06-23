@@ -100,15 +100,19 @@ export function insertTags(dataset: TagData[],
   tags = tags.filter(x => x && !ts.has(x) && ts.add(x))
   if (!tags.length)
     return []
+  if (typeof (position) != 'number') { // auto mode
+    return dataset.map(x => {
+      ts = new Set(x.tags)
+      return {index: x.key, tags: x.tags.concat(tags.filter(a => !ts.has(a)))}
+    })
+  }
   return dataset.map(x => {
     let s1: string[] = x.tags.filter(a => !ts.has(a))
     let s2: string[] = []
-    if (typeof (position) == 'number') {
-      if (position >= 0)
-        s2 = s1.splice(position, s1.length)
-      else
-        s2 = s1.splice(s1.length + position, s1.length)
-    }
+    if (position >= 0)
+      s2 = s1.splice(position, s1.length)
+    else
+      s2 = s1.splice(s1.length + position, s1.length)
     return {index: x.key, tags: s1.concat(tags).concat(s2)}
   })
 }
