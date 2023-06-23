@@ -10,7 +10,7 @@ const props = defineProps<{
 }>()
 
 const text = ref<string>('')
-const position = ref<number>(0)
+const position = ref<number>()
 
 const emit = defineEmits<{
   (e: 'updateText', value: string[]): void

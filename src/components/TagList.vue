@@ -4,8 +4,9 @@ import draggable from 'vuedraggable';
 import Tag from './Tag.vue'
 
 const props = defineProps<{
-  tags: string[],
-  nodrag?: true | boolean,
+  tags: string[]
+  nodrag?: true | boolean
+  translate?: true | boolean
   editable?: true | boolean
 }>()
 
@@ -28,7 +29,8 @@ const emit = defineEmits<{
              :animation="200"
              v-on:end="emit('sorted', tags)">
     <template #item="{ element }">
-      <Tag class="list-group-item tag-item" :removable="props.editable" :label="element"
+      <Tag class="list-group-item tag-item" :label="element"
+           :removable="props.editable" :translate="props.translate"
            v-on:delete="emit('delete', [element])"
            v-on:dblclick="emit('active', [element])"/>
     </template>

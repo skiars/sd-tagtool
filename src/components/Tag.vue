@@ -1,21 +1,40 @@
 <script setup lang="ts">
+import {computed, ref, onMounted, watch} from 'vue'
 import 'primeicons/primeicons.css'
+import {invoke} from '@tauri-apps/api/tauri'
 
 const props = defineProps<{
   label: string,
+  translate?: true | boolean
   removable?: true | boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'delete'): void
 }>()
+
+const trLabel = ref<string>('')
+const tr = computed<boolean>(() => Boolean(trLabel.value) && trLabel.value != props.label)
+
+onMounted(async () => {
+  if (props.translate)
+    trLabel.value = await invoke('translate_tag', {text: props.label}) as string
+})
+
+watch(() => props.translate, async enable => {
+  trLabel.value = enable
+      ? await invoke('translate_tag', {text: props.label}) as string
+      : ''
+})
 </script>
 
 <template>
   <div class="tag-frame">
-    <span>{{ props.label }}</span>
-    <i v-if="removable" class="pi pi-times"
-       v-on:click="emit('delete')"></i>
+    <span class="tag-label">
+      <span>{{ props.label }}</span>
+      <span class="translate-label" v-if="tr">&nbsp;{{ trLabel }} </span>
+    </span>
+    <i v-if="removable" class="pi pi-times" v-on:click="emit('delete')"/>
   </div>
 </template>
 
@@ -34,8 +53,12 @@ const emit = defineEmits<{
   user-select: none; /* Standard syntax */
 }
 
-span {
+.tag-label {
   margin: 0.2em 0.1em 0.2em 0.1em;
+}
+
+.translate-label {
+  opacity: 0.75;
 }
 
 i {

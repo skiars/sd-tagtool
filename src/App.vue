@@ -11,7 +11,7 @@ import {TagData} from './lib/types'
 import {CollectTags, TagEditor, collectTags, deleteTags, insertTags} from './lib/utils'
 
 import {open} from '@tauri-apps/api/dialog'
-import {invoke} from "@tauri-apps/api/tauri"
+import {invoke} from '@tauri-apps/api/tauri'
 import {listen} from '@tauri-apps/api/event'
 import {join} from '@tauri-apps/api/path'
 import {convertFileSrc} from '@tauri-apps/api/tauri'
@@ -25,6 +25,7 @@ const selected = ref<number[]>([])
 const selTags = ref(collectTags())
 const allTags = ref(collectTags())
 const editAllTags = ref(false)
+const translatedTags = ref(false)
 
 async function openFolder(path?: string) {
   if (!path) {
@@ -36,7 +37,7 @@ async function openFolder(path?: string) {
   const files: {
     name: string,
     tags: string[]
-  }[] = await invoke("listdir", {path: path})
+  }[] = await invoke('listdir', {path: path})
   const data: TagData[] = []
   for (let i in files) {
     const v = files[i]
@@ -124,6 +125,10 @@ platform().then(name => {
     }, false);
   }
 })
+
+listen('translate', event => {
+  translatedTags.value = event.payload as boolean
+})
 </script>
 
 <template>
@@ -137,7 +142,7 @@ platform().then(name => {
       <Splitter layout="vertical">
         <SplitterPanel class="column-flex">
           <TagList style="flex-grow: 1" :tags="selTags.tags"
-                   editable :nodrag="selected.length > 1"
+                   editable :nodrag="selected.length > 1" :translate="translatedTags"
                    v-on:sorted="onTagsChange"
                    v-on:delete="x => onDeleteTags(selTags, x)"/>
           <TagInput style="flex-shrink: 0"
@@ -147,7 +152,7 @@ platform().then(name => {
         </SplitterPanel>
         <SplitterPanel class="column-flex">
           <TagList style="flex-grow: 1" :tags="allTags.tags"
-                   :editable="editAllTags" nodrag
+                   :editable="editAllTags" nodrag :translate="translatedTags"
                    v-on:delete="onDeleteTags(allTags, $event)"
                    v-on:active="onInsertTags($event)"/>
         </SplitterPanel>
