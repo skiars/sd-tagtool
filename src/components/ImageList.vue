@@ -8,17 +8,15 @@ const props = defineProps<{
   dataset: TagData[]
 }>()
 
-const selected = ref<TagData[]>()
+const selected = ref<TagData[]>([])
 
 const emit = defineEmits<{
-  select: { index: number }[],
-  openFolder: void
+  (e: 'select', value: { index: number }[]): void
+  (e: 'openFolder'): void
 }>()
 
 watch(selected, value => {
-  emit('select', value?.map(x => {
-    return {index: x.key}
-  }))
+  emit('select', value.map(x => ({index: x.key})))
 })
 </script>
 
@@ -31,9 +29,9 @@ watch(selected, value => {
       </div>
     </template>
     <Column field="url">
-      <template #body="{ index, data }">
+      <template #body="{ data }">
         <div>
-          <img class="image" :src="data.url"/>
+          <img class="image" :src="data.url" :alt="data.url"/>
         </div>
       </template>
     </Column>
@@ -43,6 +41,7 @@ watch(selected, value => {
 <style scoped>
 .empty-list {
   cursor: pointer;
+  text-align: center;
 }
 
 .image-list {

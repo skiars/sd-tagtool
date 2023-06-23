@@ -13,9 +13,9 @@ const tags = ref<string[]>([])
 watch(() => props.tags, x => tags.value = x)
 
 const emit = defineEmits<{
-  sorted: string[]
-  delete: string[],
-  active: string[]
+  (e: 'sorted', value: string[]): void
+  (e: 'delete', value: string[]): void
+  (e: 'active', value: string[]): void
 }>()
 </script>
 
@@ -49,6 +49,6 @@ const emit = defineEmits<{
 }
 
 .tag-item {
-  margin: 4px 6px;
+  margin: 4px 4px;
 }
 </style>

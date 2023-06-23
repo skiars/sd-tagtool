@@ -17,7 +17,7 @@ import {join} from '@tauri-apps/api/path'
 import {convertFileSrc} from '@tauri-apps/api/tauri'
 import {exit} from '@tauri-apps/api/process'
 
-let tagEditor: TagEditor
+let tagEditor: TagEditor = new TagEditor
 let tagInsPos: number | undefined = undefined
 let workDir: string = ''
 const dataset = ref<TagData[]>([])
@@ -124,12 +124,12 @@ async function onMenuAction(action: Menu) {
         <SplitterPanel class="column-flex">
           <TagList style="flex-grow: 1" :tags="selTags.tags"
                    editable :nodrag="selected.length > 1"
-                   v-on:sorted="onTagsChange($event)"
-                   v-on:delete="onDeleteTags(selTags, $event)"/>
+                   v-on:sorted="onTagsChange"
+                   v-on:delete="x => onDeleteTags(selTags, x)"/>
           <TagInput style="flex-shrink: 0"
                     v-model:editAllTags="editAllTags"
-                    v-on:updatePosition="tagInsPos = $event"
-                    v-on:updateText="onInsertTags($event)"/>
+                    v-on:updatePosition="x => tagInsPos = x"
+                    v-on:updateText="onInsertTags"/>
         </SplitterPanel>
         <SplitterPanel class="column-flex">
           <TagList style="flex-grow: 1" :tags="allTags.tags"
@@ -155,9 +155,10 @@ footer {
 }
 
 .column-flex {
-  margin: 0.5em;
+  padding: 0.5em;
   display: flex;
   flex-direction: column;
-  overflow-y: hidden;
+  gap: 0.5em;
+  overflow-y: clip;
 }
 </style>

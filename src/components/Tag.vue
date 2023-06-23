@@ -1,22 +1,20 @@
 <script setup lang="ts">
-import {ref} from 'vue'
-import Chip from 'primevue/chip'
 import 'primeicons/primeicons.css'
 
 const props = defineProps<{
   label: string,
-  removable?: true
+  removable?: true | boolean
 }>()
 
 const emit = defineEmits<{
-  delete: void
+  (e: 'delete'): void
 }>()
 </script>
 
 <template>
   <div class="tag-frame">
     <span>{{ props.label }}</span>
-    <i v-if="removable" class="pi pi-times" style="font-size: 0.5em"
+    <i v-if="removable" class="pi pi-times"
        v-on:click="emit('delete')"></i>
   </div>
 </template>
@@ -24,13 +22,12 @@ const emit = defineEmits<{
 <style scoped>
 .tag-frame {
   display: flex;
-  align-items: baseline;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
+  padding-left: 0.25em;
+  padding-right: 0.25em;
+  align-items: center;
   color: var(--primary-color-text);
   background-color: var(--primary-400);
   border-radius: 0.5em;
-  gap: 0.25em;
   cursor: default;
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
@@ -38,8 +35,13 @@ const emit = defineEmits<{
 }
 
 span {
-  margin-top: 0.2em;
-  margin-bottom: 0.2em;
+  margin: 0.2em 0.1em 0.2em 0.1em;
+}
+
+i {
+  font-size: 0.875em;
+  padding: 0.1em;
+  border-radius: 1em;
 }
 
 i:hover {

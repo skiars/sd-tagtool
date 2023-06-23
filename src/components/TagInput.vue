@@ -9,13 +9,13 @@ const props = defineProps<{
   editAllTags: boolean
 }>()
 
-const text = ref<string>()
-const position = ref<string>()
+const text = ref<string>('')
+const position = ref<number>(0)
 
 const emit = defineEmits<{
-  updateText: string[],
-  updatePosition: number | undefined,
-  'update:editAllTags': boolean
+  (e: 'updateText', value: string[]): void
+  (e: 'updatePosition', value: number | undefined): void
+  (e: 'update:editAllTags', value: boolean): void
 }>()
 
 const editAllTags = computed<boolean>({
@@ -31,11 +31,11 @@ const editAllTags = computed<boolean>({
 <template>
   <div class="tag-input-container">
     <span>add tag</span>
-    <input-text v-model="text" type="text"></input-text>
+    <input-text v-model="text" type="text"/>
     <span>position</span>
     <input-number v-model="position" placeholder="auto"
                   v-on:update:modelValue="emit('updatePosition', $event)"
-                  inputStyle="padding: 0.25em; width: 5em"></input-number>
+                  :inputStyle="{ padding: '0.25em', width: '5em' }"/>
     <Button rounded class="p-button-x" v-on:click="emit('updateText', [text])">Insert</Button>
     <span>edit all tags</span>
     <input-switch v-model="editAllTags"></input-switch>
@@ -46,12 +46,12 @@ const editAllTags = computed<boolean>({
 .tag-input-container {
   display: flex;
   align-items: baseline;
-  padding: 0.5em;
   gap: 0.5em;
 }
 
 .p-inputtext, .p-button {
   padding: 0.25em;
+  align-self: center;
 }
 
 .p-button {
@@ -60,7 +60,6 @@ const editAllTags = computed<boolean>({
 }
 
 .p-inputswitch {
-  margin: 0;
   align-self: center;
 }
 </style>

@@ -6,7 +6,7 @@ interface EditAction {
 }
 
 export class TagEditor {
-  constructor(dataset: TagData[]) {
+  constructor(dataset: TagData[] = []) {
     this.dataset = dataset
   }
 

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import {ref, shallowRef} from 'vue'
+import {ref} from 'vue'
 import MenuBar from 'primevue/menubar'
 import {Menu} from "../lib/types";
 
 const emit = defineEmits<{
-  action: Menu
+  (e: 'action', value: Menu): void
 }>()
 
 function action(a: Menu) {
@@ -18,7 +18,7 @@ const items = ref([{
     label: 'Open',
     icon: 'pi pi-fw pi-plus',
     command: action(Menu.Open)
-  },{
+  }, {
     label: 'Save',
     icon: 'pi pi-fw pi-save',
     command: action(Menu.Save)
