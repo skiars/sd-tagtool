@@ -39,7 +39,7 @@ span {
 }
 
 i {
-  font-size: 0.875em;
+  font-size: 0.85em;
   padding: 0.1em;
   border-radius: 1em;
 }

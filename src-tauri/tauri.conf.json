@@ -23,6 +23,9 @@
           "**"
         ]
       },
+      "os": {
+        "all": true
+      },
       "fs": {
         "all": true,
         "scope": [

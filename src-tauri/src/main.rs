@@ -3,6 +3,7 @@
 
 use std::fs;
 use std::path::PathBuf;
+use tauri::{CustomMenuItem, Menu, MenuItem, Runtime, Submenu, WindowMenuEvent};
 
 #[derive(serde::Serialize)]
 struct TagData {
@@ -96,9 +97,44 @@ fn read_txt_tags(txt: String) -> Vec<String> {
     s.v
 }
 
+fn window_menu() -> Menu {
+    // here `"quit".to_string()` defines the menu item id, and the second parameter is the menu item label.
+    let open = CustomMenuItem::new("open".to_string(), "Open")
+        .accelerator("CmdOrCtrl+O");
+    let save = CustomMenuItem::new("save".to_string(), "Save")
+        .accelerator("CmdOrCtrl+S");
+    let file = Submenu::new("File", Menu::new()
+        .add_item(open).add_item(save)
+        .add_native_item(MenuItem::Separator).add_native_item(MenuItem::Quit));
+
+    let undo = CustomMenuItem::new("undo".to_string(), "Undo")
+        .accelerator("CmdOrCtrl+Z");
+    let redo = CustomMenuItem::new("redo".to_string(), "Redo")
+        .accelerator("CmdOrCtrl+Shift+Z");
+    let edit = Submenu::new("Edit", Menu::new()
+        .add_item(undo).add_item(redo));
+
+    Menu::new().add_submenu(file).add_submenu(edit)
+}
+
+fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
+    match event.menu_item_id() {
+        "quit" => { std::process::exit(0); }
+        "open" => { event.window().emit("menu", "open").unwrap(); }
+        "save" => { event.window().emit("menu", "save").unwrap(); }
+        "undo" => { event.window().emit("menu", "undo").unwrap(); }
+        "redo" => { event.window().emit("menu", "redo").unwrap(); }
+        _ => {}
+    }
+}
+
 fn main() {
+    let menu = window_menu();
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![listdir, save_text])
+        .menu(menu)
+        .on_menu_event(handle_menu)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

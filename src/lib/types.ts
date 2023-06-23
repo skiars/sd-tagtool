@@ -4,11 +4,3 @@ export interface TagData {
   url: string,
   tags: string[]
 }
-
-export enum Menu {
-  Open,
-  Save,
-  Quit,
-  Undo,
-  Redo
-}

@@ -4,18 +4,18 @@ import {ref} from 'vue'
 import Splitter from 'primevue/splitter';
 import SplitterPanel from 'primevue/splitterpanel'
 
-import MenuBar from './components/MenuBar.vue'
 import ImageList from './components/ImageList.vue'
 import TagList from './components/TagList.vue'
 import TagInput from "./components/TagInput.vue";
-import {Menu, TagData} from './lib/types'
+import {TagData} from './lib/types'
 import {CollectTags, TagEditor, collectTags, deleteTags, insertTags} from './lib/utils'
 
 import {open} from '@tauri-apps/api/dialog'
 import {invoke} from "@tauri-apps/api/tauri"
+import {listen} from '@tauri-apps/api/event'
 import {join} from '@tauri-apps/api/path'
 import {convertFileSrc} from '@tauri-apps/api/tauri'
-import {exit} from '@tauri-apps/api/process'
+import {platform} from '@tauri-apps/api/os'
 
 let tagEditor: TagEditor = new TagEditor
 let tagInsPos: number | undefined = undefined
@@ -27,8 +27,12 @@ const allTags = ref(collectTags())
 const editAllTags = ref(false)
 
 async function openFolder(path?: string) {
-  if (!path)
-    path = await open({directory: true}) as string
+  if (!path) {
+    const result = await open({directory: true})
+    if (!result)
+      return
+    path = result as string
+  }
   const files: {
     name: string,
     tags: string[]
@@ -82,37 +86,47 @@ function onInsertTags(tags: string[]) {
   updateTags(tagEditor.edit(edit))
 }
 
-async function onMenuAction(action: Menu) {
-  switch (action) {
-    case Menu.Open:
+async function menuAction(menu: string) {
+  switch (menu) {
+    case 'open':
       await openFolder()
       break
-    case Menu.Save:
+    case 'save':
       await Promise.all(dataset.value.map(async x => {
-        await invoke("save_text", {
+        await invoke('save_text', {
           path: await join(workDir, x.name),
           text: x.tags.join(', ')
         })
       }))
       alert('All content has been saved!')
       break
-    case Menu.Quit:
-      await exit(0)
-      break
-    case Menu.Undo:
+    case 'undo':
       updateTags(tagEditor.undo())
       break
-    case Menu.Redo:
+    case 'redo':
       updateTags(tagEditor.redo())
       break
   }
 }
+
+listen('menu', async event => menuAction(event.payload as string))
+platform().then(name => {
+  if (name == 'win32') { // Menu shortcuts registered in the backend on Windows do not work...
+    document.addEventListener('keydown', e => {
+      function handle(action: string, key: string, shift: boolean = false) {
+        if (e.ctrlKey && !e.altKey && e.shiftKey == shift && e.code == key)
+          menuAction(action)
+      }
+      handle('open', 'KeyO')
+      handle('save', 'KeyS')
+      handle('undo', 'KeyZ')
+      handle('redo', 'KeyZ', true)
+    }, false);
+  }
+})
 </script>
 
 <template>
-  <header>
-    <MenuBar v-on:action="onMenuAction($event)"/>
-  </header>
   <Splitter class="main-content">
     <SplitterPanel :size="20">
       <ImageList :dataset="dataset"
