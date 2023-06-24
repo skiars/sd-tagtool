@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "sd-tagtool",
-    "version": "0.0.0"
+    "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
@@ -40,7 +40,7 @@
       }
     },
     "bundle": {
-      "active": false,
+      "active": true,
       "targets": "all",
       "identifier": "com.sd-tagtool.dev",
       "icon": [
@@ -49,6 +49,9 @@
         "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
+      ],
+      "resources": [
+        "shared/*"
       ]
     },
     "security": {

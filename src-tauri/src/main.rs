@@ -9,13 +9,13 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Runtime, State, Submenu, WindowMenuEvent};
 use translate::{TranslateCache, translate};
-use crate::tagutils::{QueryTag, TagData, TagHint, TagHintDB, read_tag_db};
+use crate::tagutils::{QueryTag, TagData, TagHint, TagHintDB};
 
 #[derive(Default)]
 struct CmdState {
     translate_enabled: Mutex<bool>,
     translate_cache: TranslateCache,
-    tags_db: TagHintDB,
+    tags_db: Mutex<TagHintDB>,
 }
 
 #[tauri::command]
@@ -46,7 +46,7 @@ async fn translate_tag(text: String, state: State<'_, CmdState>) -> Result<Strin
 
 #[tauri::command]
 fn query_tag(text: &str, state: State<'_, CmdState>) -> Vec<QueryTag> {
-    let db: &TagHintDB = &state.tags_db;
+    let db = state.tags_db.lock().unwrap();
     let matched = db.search.search(text);
     matched.iter().take(20).map(|tag| {
         let hint = db.database.get(tag).unwrap();
@@ -109,12 +109,18 @@ fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
 }
 
 fn main() {
-    let mut state: CmdState = CmdState::default();
-    state.tags_db = read_tag_db();
-
     let menu = window_menu();
     tauri::Builder::default()
-        .manage(state)
+        .manage(CmdState::default())
+        .setup(|app| {
+            let tags_db_path = app.path_resolver()
+                .resolve_resource("shared/tags.db")
+                .expect("failed to resolve tags.db path");
+            let state: State<CmdState> = app.state();
+            println!("tags_db_path: {:?}", tags_db_path);
+            state.tags_db.lock().unwrap().read_db(tags_db_path);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             listdir, save_tags, parse_tags, translate_tag, query_tag
         ])

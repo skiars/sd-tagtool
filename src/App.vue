@@ -170,7 +170,7 @@ footer {
 }
 
 .main-content {
-  height: calc(100vh - 70px);
+  height: calc(100vh - 20px);
   background-color: transparent;
 }
 

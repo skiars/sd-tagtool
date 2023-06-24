@@ -3,7 +3,6 @@ use std::fs;
 use std::fs::{File};
 use std::path::Path;
 use std::path::PathBuf;
-use std::env;
 use std::collections::HashMap;
 use simsearch::{SimSearch, SearchOptions};
 
@@ -28,16 +27,6 @@ pub struct QueryTag {
     pub tag: String,
     pub suggest: Option<String>,
     pub usage_count: Option<u32>,
-}
-
-impl TagHintDB {
-    pub fn new() -> Self {
-        TagHintDB {
-            database: HashMap::new(),
-            search: SimSearch::new_with(
-                SearchOptions::new().stop_whitespace(false)),
-        }
-    }
 }
 
 impl Default for TagHintDB {
@@ -156,19 +145,21 @@ fn list_csv<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     })).collect::<Vec<_>>())
 }
 
-pub fn read_tag_db() -> TagHintDB {
-    match env::current_exe() {
-        Ok(mut exe_path) => {
-            exe_path.set_file_name("tags.db");
-            let mut db: TagHintDB = TagHintDB::new();
-            let csv_list = list_csv(exe_path).unwrap_or(Vec::new());
-            for p in csv_list {
-                println!("find tags.db: {}", p.to_str().unwrap());
-                read_tag_csv(&mut db, p).unwrap_or(());
-            }
-            println!("scanned {:?} tags", db.database.len());
-            db
+
+impl TagHintDB {
+    pub fn new() -> Self {
+        TagHintDB {
+            database: HashMap::new(),
+            search: SimSearch::new_with(
+                SearchOptions::new().stop_whitespace(false)),
         }
-        Err(_) => TagHintDB::new()
+    }
+    pub fn read_db<P: AsRef<Path>>(&mut self, db_path: P) {
+        let csv_list = list_csv(db_path).unwrap_or(Vec::new());
+        for p in csv_list {
+            println!("find tags.db: {}", p.to_str().unwrap());
+            read_tag_csv(self, p).unwrap_or(());
+        }
+        println!("scanned {:?} tags", self.database.len());
     }
 }
