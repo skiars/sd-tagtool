@@ -22,6 +22,7 @@ regex = "1.8.4"
 lazy_static = "1.4.0"
 futures = "0.3.28"
 csv = "1.2.2"
+simsearch = "0.2.4"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

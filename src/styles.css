@@ -13,3 +13,30 @@ html {
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
+
+.p-inputtext, .p-button {
+  padding: 0.25em;
+}
+
+.p-button {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.p-autocomplete-panel .p-autocomplete-items .p-autocomplete-item {
+  padding: 0.5em 0.75em;
+}
+
+.p-autocomplete .p-autocomplete-multiple-container {
+  padding: 0.15em 0.15em;
+  flex-grow: 1;
+}
+
+.p-autocomplete .p-autocomplete-multiple-container .p-autocomplete-token {
+  padding: 0.1em 0.2em;
+  border-radius: 0.4em;
+}
+
+.p-autocomplete .p-autocomplete-multiple-container .p-autocomplete-input-token {
+  padding: 0;
+}

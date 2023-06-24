@@ -2435,6 +2435,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "simsearch",
  "tauri",
  "tauri-build",
  "tokio",
@@ -2649,6 +2650,16 @@ name = "simd-adler32"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "238abfbb77c1915110ad968465608b68e869e0772622c9656714e73e5a1a522f"
+
+[[package]]
+name = "simsearch"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1649c86f6ff4bec1c5a96b834f1e0da09eff92d85e3963286a61f41afca65de5"
+dependencies = [
+ "strsim",
+ "triple_accel",
+]
 
 [[package]]
 name = "siphasher"
@@ -3355,6 +3366,12 @@ checksum = "52984d277bdf2a751072b5df30ec0377febdb02f7696d64c2d7d54630bac4303"
 dependencies = [
  "serde_json",
 ]
+
+[[package]]
+name = "triple_accel"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "622b09ce2fe2df4618636fb92176d205662f59803f39e70d1c333393082de96c"
 
 [[package]]
 name = "try-lock"

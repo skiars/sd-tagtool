@@ -5,10 +5,8 @@ mod translate;
 mod tagutils;
 
 use std::fs;
-use std::ops::Bound::Included;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use std::ops::Bound::*;
 use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Runtime, State, Submenu, WindowMenuEvent};
 use translate::{TranslateCache, translate};
 use crate::tagutils::{QueryTag, TagData, TagHint, TagHintDB, read_tag_db};
@@ -49,8 +47,10 @@ async fn translate_tag(text: String, state: State<'_, CmdState>) -> Result<Strin
 #[tauri::command]
 fn query_tag(text: &str, state: State<'_, CmdState>) -> Vec<QueryTag> {
     let db: &TagHintDB = &state.tags_db;
-    let range = db.range((Included(text.to_string()), Unbounded));
-    range.step_by(10).map(|(tag, hint)| match hint {
+    let matched = db.search.search(text);
+    matched.iter().take(20).map(|tag| {
+        let hint = db.database.get(tag).unwrap();
+        match hint {
         TagHint::Just(x) => QueryTag {
             tag: tag.clone(),
             suggest: None,
@@ -61,6 +61,7 @@ fn query_tag(text: &str, state: State<'_, CmdState>) -> Vec<QueryTag> {
             suggest: Some(x.clone()),
             usage_count: None,
         }
+    }
     }).collect::<Vec<_>>()
 }
 

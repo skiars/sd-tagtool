@@ -23,8 +23,8 @@ onMounted(async () => {
 
 watch(() => props.translate, async enable => {
   trLabel.value = enable
-      ? await invoke('translate_tag', {text: props.label}) as string
-      : ''
+    ? await invoke('translate_tag', {text: props.label}) as string
+    : ''
 })
 </script>
 

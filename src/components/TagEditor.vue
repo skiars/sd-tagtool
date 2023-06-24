@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {ref, computed, watch} from 'vue'
-import {invoke} from '@tauri-apps/api/tauri'
-import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
+import TagInput from './TagInput.vue'
 
 const props = defineProps<{
-  editAllTags: boolean
+  editAllTags: boolean,
+  translate?: true | boolean
 }>()
 
 const emit = defineEmits<{
@@ -15,13 +16,8 @@ const emit = defineEmits<{
   (e: 'update:editAllTags', value: boolean): void
 }>()
 
-const text = ref<string>('')
-const tags = ref<string[]>([])
 const position = ref<number>()
-
-watch(text, async x =>
-    tags.value = await invoke('parse_tags', {text: x})
-)
+let tags: string[] = []
 
 const editAllTags = computed<boolean>({
   get() {
@@ -40,8 +36,8 @@ const editAllTags = computed<boolean>({
                   v-on:update:modelValue="emit('updatePosition', $event)"
                   :inputStyle="{ padding: '0.25em', width: '5em' }"/>
     <span>add tag</span>
-    <input-text v-model="text" type="text" v-on:keydown.enter="emit('updateTags', tags)"
-                placeholder="Separate tags with ',' and press Enter to insert" />
+    <tag-input class="tag-input" :translate="props.translate" v-on:updateTags="x => tags = x"/>
+    <Button rounded v-on:click="emit('updateTags', tags)">Insert</Button>
     <span>edit all tags</span>
     <input-switch v-model="editAllTags"></input-switch>
   </div>
@@ -55,17 +51,11 @@ const editAllTags = computed<boolean>({
 }
 
 .p-inputtext, .p-button {
-  padding: 0.25em;
   align-self: center;
 }
 
-.p-inputtext {
+.tag-input {
   flex-grow: 1;
-}
-
-.p-button {
-  padding-left: 0.75em;
-  padding-right: 0.75em;
 }
 
 .p-inputswitch {

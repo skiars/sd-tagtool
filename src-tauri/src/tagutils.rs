@@ -4,26 +4,44 @@ use std::fs::{File};
 use std::path::Path;
 use std::path::PathBuf;
 use std::env;
-use std::collections::BTreeMap;
+use std::collections::HashMap;
+use simsearch::{SimSearch, SearchOptions};
 
 pub enum TagHint {
     Just(u32),
-    Alias(String)
+    Alias(String),
 }
 
-pub type TagHintDB = BTreeMap<String, TagHint>;
+pub struct TagHintDB {
+    pub database: HashMap<String, TagHint>,
+    pub search: SimSearch<String>,
+}
 
 #[derive(serde::Serialize)]
 pub struct TagData {
-    name: String,
-    tags: Vec<String>
+    pub name: String,
+    pub tags: Vec<String>,
 }
 
 #[derive(serde::Serialize)]
 pub struct QueryTag {
     pub tag: String,
     pub suggest: Option<String>,
-    pub usage_count: Option<u32>
+    pub usage_count: Option<u32>,
+}
+
+impl TagHintDB {
+    pub fn new() -> Self {
+        TagHintDB {
+            database: HashMap::new(),
+            search: SimSearch::new_with(
+                SearchOptions::new().stop_whitespace(false)),
+        }
+    }
+}
+
+impl Default for TagHintDB {
+    fn default() -> TagHintDB { TagHintDB::new() }
 }
 
 pub fn read_tags(path: PathBuf) -> Option<TagData> {
@@ -93,27 +111,35 @@ pub fn parse_tags(txt: &str) -> Vec<String> {
     s.v
 }
 
+fn try_parse_tag(tag: &str) -> String {
+    parse_tags(tag).get(0).map_or(tag.to_string(), |e| e.clone())
+}
+
 fn read_tag_csv<P: AsRef<Path>>(db: &mut TagHintDB, path: P) -> io::Result<()> {
-    let mut rdr = csv::Reader::from_reader(File::open(path)?);
+    let mut rdr = csv::ReaderBuilder::new()
+        .has_headers(false).from_reader(File::open(path)?);
     for result in rdr.records() {
         let record = result?;
         if record.len() < 1 { continue; }
-        let tag = record.get(0).unwrap().to_string();
+        let tag = try_parse_tag(record.get(0).unwrap());
         match record.len() {
-            1 | 2 => { db.insert(tag, TagHint::Just(0)); }
+            1 | 2 => { db.database.insert(tag, TagHint::Just(0)); }
             3 => {
-                db.insert(tag, TagHint::Just(
+                db.database.insert(tag, TagHint::Just(
                     record.get(2).unwrap().parse().unwrap_or(0)));
             }
             4 => {
-                db.insert(tag.clone(), TagHint::Just(
+                db.database.insert(tag.clone(), TagHint::Just(
                     record.get(2).unwrap().parse().unwrap_or(0)));
                 for a in parse_tags(record.get(3).unwrap()) {
-                    db.insert(a, TagHint::Alias(tag.clone()));
+                    db.database.insert(a, TagHint::Alias(tag.clone()));
                 }
             }
             _ => {}
         };
+    }
+    for rec in db.database.keys() {
+        db.search.insert(rec.clone(), rec.as_str());
     }
     Ok(())
 }
@@ -140,7 +166,7 @@ pub fn read_tag_db() -> TagHintDB {
                 println!("find tags.db: {}", p.to_str().unwrap());
                 read_tag_csv(&mut db, p).unwrap_or(());
             }
-            println!("Scanned {:?} tags", db.len());
+            println!("scanned {:?} tags", db.database.len());
             db
         }
         Err(_) => TagHintDB::new()

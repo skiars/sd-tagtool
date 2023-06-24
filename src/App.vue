@@ -118,6 +118,7 @@ platform().then(name => {
         if (e.ctrlKey && !e.altKey && e.shiftKey == shift && e.code == key)
           menuAction(action)
       }
+
       handle('open', 'KeyO')
       handle('save', 'KeyS')
       handle('undo', 'KeyZ')
@@ -145,7 +146,7 @@ listen('translate', event => {
                    editable :nodrag="selected.length > 1" :translate="translatedTags"
                    v-on:sorted="onTagsChange"
                    v-on:delete="x => onDeleteTags(selTags, x)"/>
-          <TagInput style="flex-shrink: 0"
+          <TagInput style="flex-shrink: 0" :translate="translatedTags"
                     v-model:editAllTags="editAllTags"
                     v-on:updatePosition="x => tagInsPos = x"
                     v-on:updateTags="onInsertTags"/>
