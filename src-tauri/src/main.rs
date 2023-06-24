@@ -5,19 +5,23 @@ mod translate;
 mod tagutils;
 
 use std::fs;
+use std::ops::Bound::Included;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::ops::Bound::*;
 use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Runtime, State, Submenu, WindowMenuEvent};
 use translate::{TranslateCache, translate};
+use crate::tagutils::{QueryTag, TagData, TagHint, TagHintDB, read_tag_db};
 
 #[derive(Default)]
 struct CmdState {
     translate_enabled: Mutex<bool>,
     translate_cache: TranslateCache,
+    tags_db: TagHintDB,
 }
 
 #[tauri::command]
-fn listdir(path: &str) -> Vec<tagutils::TagData> {
+fn listdir(path: &str) -> Vec<TagData> {
     fs::read_dir(path)
         .unwrap()
         .filter_map(|e| e.ok().map(|e| e.path()))
@@ -40,6 +44,24 @@ fn parse_tags(text: &str) -> Vec<String> {
 #[tauri::command]
 async fn translate_tag(text: String, state: State<'_, CmdState>) -> Result<String, ()> {
     Ok(translate(&state.translate_cache, "zh-CN", text.as_str()).await)
+}
+
+#[tauri::command]
+fn query_tag(text: &str, state: State<'_, CmdState>) -> Vec<QueryTag> {
+    let db: &TagHintDB = &state.tags_db;
+    let range = db.range((Included(text.to_string()), Unbounded));
+    range.step_by(10).map(|(tag, hint)| match hint {
+        TagHint::Just(x) => QueryTag {
+            tag: tag.clone(),
+            suggest: None,
+            usage_count: Some(x.clone()),
+        },
+        TagHint::Alias(x) => QueryTag {
+            tag: tag.clone(),
+            suggest: Some(x.clone()),
+            usage_count: None,
+        }
+    }).collect::<Vec<_>>()
 }
 
 fn window_menu() -> Menu {
@@ -86,10 +108,15 @@ fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
 }
 
 fn main() {
+    let mut state: CmdState = CmdState::default();
+    state.tags_db = read_tag_db();
+
     let menu = window_menu();
     tauri::Builder::default()
-        .manage(CmdState::default())
-        .invoke_handler(tauri::generate_handler![listdir, save_tags, parse_tags, translate_tag])
+        .manage(state)
+        .invoke_handler(tauri::generate_handler![
+            listdir, save_tags, parse_tags, translate_tag, query_tag
+        ])
         .menu(menu)
         .on_menu_event(handle_menu)
         .run(tauri::generate_context!())

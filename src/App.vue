@@ -6,7 +6,7 @@ import SplitterPanel from 'primevue/splitterpanel'
 
 import ImageList from './components/ImageList.vue'
 import TagList from './components/TagList.vue'
-import TagInput from "./components/TagInput.vue";
+import TagInput from "./components/TagEditor.vue";
 import {TagData} from './lib/types'
 import {CollectTags, TagEditor, collectTags, deleteTags, insertTags} from './lib/utils'
 
