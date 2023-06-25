@@ -11,7 +11,7 @@ This is a simple tag editor for stable diffusion datasets. It can be used to edi
 - Intelligent prompt for tag input (support fuzzy matching)
 - Automatic translation (translation to Chinese is now hard-coded, and may require magic to surf the Internet)
 - Insert tags in batches, you can specify the insertion position
-- quick response
+- Quick response
 
 ## Screenshot
 
@@ -34,7 +34,7 @@ Enter a tag in the *add tag* input box and click the *Insert* button to insert a
 The insertion position is specified by the *position* box. These modes are currently supported:
 - **auto**: Insert tags to tail if there is no label to be inserted in the image, otherwise do nothing;
 - **Positive number**: Insert tags into the position counting from the head, if the tag already exists in the image, it will be moved to the specified position;
-- **Negative numbers**: Similar to positive numbers, but counting from the tail to the front.
+- **Negative number**: Similar to positive numbers, but counting from the tail to the front.
 
 The insertion position can exceed the actual number of tags in the image, and the tags will be inserted at the head or tail position at this time.
 

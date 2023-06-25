@@ -37,6 +37,10 @@ html {
   border-radius: 0.4em;
 }
 
+.p-autocomplete .p-autocomplete-multiple-container .p-autocomplete-input-token input {
+  padding: 0.1em 0;
+}
+
 .p-autocomplete .p-autocomplete-multiple-container .p-autocomplete-input-token {
   padding: 0;
 }

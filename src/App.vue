@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 
-import Splitter from 'primevue/splitter';
+import Splitter from 'primevue/splitter'
 import SplitterPanel from 'primevue/splitterpanel'
 
 import ImageList from './components/ImageList.vue'
 import TagList from './components/TagList.vue'
-import TagInput from "./components/TagEditor.vue";
+import TagEditor from './components/TagEditor.vue'
+import ImageFilter from './components/ImageFilter.vue'
 import {TagData} from './lib/types'
-import {CollectTags, TagEditor, collectTags, deleteTags, insertTags} from './lib/utils'
+import {CollectTags, EditorHistory, collectTags, deleteTags, insertTags} from './lib/utils'
 
 import {open} from '@tauri-apps/api/dialog'
 import {invoke} from '@tauri-apps/api/tauri'
@@ -17,10 +18,11 @@ import {join} from '@tauri-apps/api/path'
 import {convertFileSrc} from '@tauri-apps/api/tauri'
 import {platform} from '@tauri-apps/api/os'
 
-let tagEditor: TagEditor = new TagEditor
+let history: EditorHistory = new EditorHistory
 let tagInsPos: number | undefined = undefined
 let workDir: string = ''
 const dataset = ref<TagData[]>([])
+const filteredDataset = ref<TagData[]>([])
 const selected = ref<number[]>([])
 const selTags = ref(collectTags())
 const allTags = ref(collectTags())
@@ -50,9 +52,10 @@ async function openFolder(path?: string) {
   }
   workDir = path
   dataset.value = data
+  filteredDataset.value = data
   selected.value = []
   updateTags(data)
-  tagEditor = new TagEditor(dataset.value)
+  history = new EditorHistory(dataset.value)
 }
 
 function selectedTags(d: { index: number }[]) {
@@ -62,7 +65,7 @@ function selectedTags(d: { index: number }[]) {
 
 function onTagsChange(x: string[]) {
   if (selected.value.length == 1) {
-    const d = tagEditor.edit([{index: selected.value[0], tags: x}])
+    const d = history.edit([{index: selected.value[0], tags: x}])
     updateTags(d)
   }
 }
@@ -77,14 +80,30 @@ function updateTags(d: TagData[] | undefined) {
 
 function onDeleteTags(collect: CollectTags, tags: string[]) {
   const edit = deleteTags(dataset.value, collect, tags)
-  updateTags(tagEditor.edit(edit))
+  updateTags(history.edit(edit))
 }
 
 function onInsertTags(tags: string[]) {
   const sel: Set<number> = new Set(selected.value)
   const data = dataset.value.filter(x => sel.has(x.key))
   const edit = insertTags(data, tags, tagInsPos)
-  updateTags(tagEditor.edit(edit))
+  updateTags(history.edit(edit))
+}
+
+function onFilterApply(e: { tags: string[], exclude: boolean }) {
+  if (e.tags) {
+    function include(x: TagData): boolean {
+      const s = new Set(x.tags)
+      return e.tags.every(a => s.has(a))
+    }
+    function exclude(x: TagData): boolean {
+      const s = new Set(x.tags)
+      return !e.tags.some(a => s.has(a))
+    }
+    filteredDataset.value = dataset.value.filter(e.exclude ? exclude : include)
+  } else {
+    filteredDataset.value = dataset.value
+  }
 }
 
 async function menuAction(menu: string) {
@@ -102,10 +121,10 @@ async function menuAction(menu: string) {
       alert('All content has been saved!')
       break
     case 'undo':
-      updateTags(tagEditor.undo())
+      updateTags(history.undo())
       break
     case 'redo':
-      updateTags(tagEditor.redo())
+      updateTags(history.redo())
       break
   }
 }
@@ -133,33 +152,32 @@ listen('translate', event => {
 </script>
 
 <template>
-  <Splitter class="main-content">
-    <SplitterPanel :size="20">
-      <ImageList :dataset="dataset"
-                 v-on:select="selectedTags($event)"
-                 v-on:openFolder="openFolder()"/>
-    </SplitterPanel>
-    <SplitterPanel :size="80">
-      <Splitter layout="vertical">
-        <SplitterPanel class="column-flex">
-          <TagList style="flex-grow: 1" :tags="selTags.tags"
-                   editable :nodrag="selected.length > 1" :translate="translatedTags"
-                   v-on:sorted="onTagsChange"
-                   v-on:delete="x => onDeleteTags(selTags, x)"/>
-          <TagInput style="flex-shrink: 0" :translate="translatedTags"
-                    v-model:editAllTags="editAllTags"
-                    v-on:updatePosition="x => tagInsPos = x"
-                    v-on:updateTags="onInsertTags"/>
-        </SplitterPanel>
-        <SplitterPanel class="column-flex">
-          <TagList style="flex-grow: 1" :tags="allTags.tags"
-                   :editable="editAllTags" nodrag :translate="translatedTags"
-                   v-on:delete="onDeleteTags(allTags, $event)"
-                   v-on:active="onInsertTags($event)"/>
-        </SplitterPanel>
-      </Splitter>
-    </SplitterPanel>
-  </Splitter>
+  <splitter class="main-content">
+    <splitter-panel :size="20">
+      <image-list :dataset="filteredDataset" v-on:select="selectedTags"/>
+    </splitter-panel>
+    <splitter-panel :size="80">
+      <splitter layout="vertical">
+        <splitter-panel class="column-flex">
+          <image-filter v-on:filter="onFilterApply"/>
+          <tag-list style="flex-grow: 1" :tags="selTags.tags"
+                    editable :nodrag="selected.length > 1" :translate="translatedTags"
+                    v-on:sorted="onTagsChange"
+                    v-on:delete="x => onDeleteTags(selTags, x)"/>
+          <tag-editor style="flex-shrink: 0" :translate="translatedTags"
+                      v-model:editAllTags="editAllTags"
+                      v-on:updatePosition="x => tagInsPos = x"
+                      v-on:updateTags="onInsertTags"/>
+        </splitter-panel>
+        <splitter-panel class="column-flex">
+          <tag-list style="flex-grow: 1" :tags="allTags.tags"
+                    :editable="editAllTags" nodrag :translate="translatedTags"
+                    v-on:delete="e => onDeleteTags(allTags, e)"
+                    v-on:active="onInsertTags"/>
+        </splitter-panel>
+      </splitter>
+    </splitter-panel>
+  </splitter>
 </template>
 
 <style scoped>

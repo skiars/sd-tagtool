@@ -5,6 +5,7 @@ import AutoComplete, {AutoCompleteCompleteEvent} from "primevue/autocomplete";
 
 const props = defineProps<{
   translate?: true | boolean
+  placeholder?: string
 }>()
 
 const emit = defineEmits<{
@@ -40,7 +41,7 @@ async function search(event: AutoCompleteCompleteEvent) {
     if (props.translate) {
       suggestions.value.forEach(x => {
         invoke('translate_tag', {text: x.tag})
-          .then(tr => x.translate = tr as string)
+            .then(tr => x.translate = tr as string)
       })
     }
   } else {
@@ -57,7 +58,7 @@ function readableNumber(x: number): string {
   <auto-complete v-model="tags" multiple :suggestions="suggestions"
                  :option-label="optionLabel" v-on:complete="search"
                  v-on:change="emit('updateTags', tags.map(optionLabel))"
-                 :placeholder="!tags.length ? 'Separate tags with \',\' or press Enter' : ''">
+                 :placeholder="!tags.length ? placeholder : ''">
     <template #option="{option}: {option: TagHint}">
       <span>{{ option.tag }}</span>
       <span v-if="option.suggest">&nbsp;→ {{ option.suggest }}</span>

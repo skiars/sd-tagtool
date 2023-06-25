@@ -117,7 +117,6 @@ fn main() {
                 .resolve_resource("shared/tags.db")
                 .expect("failed to resolve tags.db path");
             let state: State<CmdState> = app.state();
-            println!("tags_db_path: {:?}", tags_db_path);
             state.tags_db.lock().unwrap().read_db(tags_db_path);
             Ok(())
         })

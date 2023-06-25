@@ -5,7 +5,7 @@ interface EditAction {
   tags: string[]
 }
 
-export class TagEditor {
+export class EditorHistory {
   constructor(dataset: TagData[] = []) {
     this.dataset = dataset
   }

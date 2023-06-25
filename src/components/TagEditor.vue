@@ -36,7 +36,9 @@ const editAllTags = computed<boolean>({
                   v-on:update:modelValue="emit('updatePosition', $event)"
                   :inputStyle="{ padding: '0.25em', width: '5em' }"/>
     <span>add tag</span>
-    <tag-input class="tag-input" :translate="props.translate" v-on:updateTags="x => tags = x"/>
+    <tag-input class="tag-input" :translate="props.translate"
+               placeholder="Separate tags with ',' or press Enter"
+               v-on:updateTags="x => tags = x"/>
     <Button rounded v-on:click="emit('updateTags', tags)">Insert</Button>
     <span>edit all tags</span>
     <input-switch v-model="editAllTags"></input-switch>

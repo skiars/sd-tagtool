@@ -12,7 +12,6 @@ const selected = ref<TagData[]>([])
 
 const emit = defineEmits<{
   (e: 'select', value: { index: number }[]): void
-  (e: 'openFolder'): void
 }>()
 
 watch(selected, value => {
@@ -21,26 +20,23 @@ watch(selected, value => {
 </script>
 
 <template>
-  <DataTable :value="props.dataset"
+  <data-table :value="props.dataset"
              v-model:selection="selected" selection-mode="multiple" class="image-list">
     <template #empty>
-      <div class="empty-list" v-on:click="emit('openFolder')">
-        Open a folder and continue.
-      </div>
+      <div class="empty-list">There are no images to show.</div>
     </template>
-    <Column field="url">
+    <column field="url">
       <template #body="{ data }">
         <div>
           <img class="image" :src="data.url" :alt="data.url"/>
         </div>
       </template>
-    </Column>
-  </DataTable>
+    </column>
+  </data-table>
 </template>
 
 <style scoped>
 .empty-list {
-  cursor: pointer;
   text-align: center;
 }
 
