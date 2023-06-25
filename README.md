@@ -9,8 +9,10 @@ This is a simple tag editor for stable diffusion datasets. It can be used to edi
 - Support display and management of all image tags
 - Support undo/redo
 - Intelligent prompt for tag input (support fuzzy matching)
+- Support drag and drop for tags
+- Tags can be inserted/deleted in batches, and the insertion position can be specified
+- Datasets can be filtered by tags
 - Automatic translation (translation to Chinese is now hard-coded, and may require magic to surf the Internet)
-- Insert tags in batches, you can specify the insertion position
 - Quick response
 
 ## Screenshot
