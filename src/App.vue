@@ -104,6 +104,8 @@ function onFilterApply(e: { tags: string[], exclude: boolean }) {
   } else {
     filteredDataset.value = dataset.value
   }
+  selected.value = []
+  selTags.value = collectTags()
 }
 
 async function menuAction(menu: string) {
