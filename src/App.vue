@@ -24,6 +24,7 @@ let tagInsPos: number | undefined = undefined
 let workDir: string = ''
 const dataset = ref<TagData[]>([])
 const filteredDataset = ref<TagData[]>([])
+const tagsFilter = ref<string[]>([])
 const selected = ref<number[]>([])
 const selTags = ref(collectTags())
 const allTags = ref(collectTags())
@@ -90,16 +91,23 @@ function onInsertTags(tags: string[]) {
   updateTags(history.edit(edit))
 }
 
+function onAddTagFilter(e: string[]) {
+  const set = new Set(tagsFilter.value)
+  tagsFilter.value = tagsFilter.value.concat(e.filter(x => !set.has(x)))
+}
+
 function onFilterApply(e: { tags: string[], exclude: boolean }) {
   if (e.tags) {
     function include(x: TagData): boolean {
       const s = new Set(x.tags)
       return e.tags.every(a => s.has(a))
     }
+
     function exclude(x: TagData): boolean {
       const s = new Set(x.tags)
       return !e.tags.some(a => s.has(a))
     }
+
     filteredDataset.value = dataset.value.filter(e.exclude ? exclude : include)
   } else {
     filteredDataset.value = dataset.value
@@ -161,11 +169,12 @@ listen('translate', event => {
     <splitter-panel :size="80">
       <splitter layout="vertical">
         <splitter-panel class="column-flex">
-          <image-filter v-on:filter="onFilterApply"/>
+          <image-filter v-model="tagsFilter" v-on:filter="onFilterApply"/>
           <tag-list style="flex-grow: 1" :tags="selTags.tags"
                     editable :nodrag="selected.length > 1"
                     v-on:sorted="onTagsChange"
-                    v-on:delete="x => onDeleteTags(selTags, x)"/>
+                    v-on:delete="x => onDeleteTags(selTags, x)"
+                    v-on:filter="onAddTagFilter"/>
           <tag-editor style="flex-shrink: 0"
                       v-model:editAllTags="editAllTags"
                       v-on:updatePosition="x => tagInsPos = x"
@@ -175,7 +184,8 @@ listen('translate', event => {
           <tag-list style="flex-grow: 1" :tags="allTags.tags"
                     :editable="editAllTags" nodrag
                     v-on:delete="e => onDeleteTags(allTags, e)"
-                    v-on:active="onInsertTags"/>
+                    v-on:active="onInsertTags"
+                    v-on:filter="onAddTagFilter"/>
         </splitter-panel>
       </splitter>
     </splitter-panel>

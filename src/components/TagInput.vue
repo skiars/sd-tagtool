@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue'
+import {ref, watch, onMounted} from 'vue'
 import {invoke} from '@tauri-apps/api/tauri'
 import AutoComplete, {AutoCompleteCompleteEvent} from 'primevue/autocomplete'
 import * as state from '../lib/state'
 
 const props = defineProps<{
+  modelValue: string[]
   placeholder?: string
 }>()
 
 const emit = defineEmits<{
-  (e: 'updateTags', value: string[]): void
+  (e: 'update:modelValue', value: string[]): void
 }>()
 
 interface TagHint {
@@ -20,9 +21,18 @@ interface TagHint {
 }
 
 const tags = ref<TagHint[]>([])
-const suggestions = ref<TagHint[]>([]);
+const suggestions = ref<TagHint[]>([])
 
 watch(state.translate, translateSuggestions)
+
+watch(() => props.modelValue, x => {
+  tags.value = x.map(a => ({tag: a}))
+})
+
+onMounted(() => {
+  if (props.modelValue)
+    tags.value = props.modelValue?.map(a => ({tag: a}))
+})
 
 function optionLabel(s: TagHint) {
   return s.suggest ? s.suggest : s.tag
@@ -33,7 +43,7 @@ function translateSuggestions() {
   suggestions.value.forEach(x => {
     if (translate) {
       invoke('translate_tag', {text: x.tag})
-          .then(tr => x.translate = tr as string)
+        .then(tr => x.translate = tr as string)
     } else {
       x.translate = undefined
     }
@@ -66,7 +76,7 @@ function readableNumber(x: number): string {
 <template>
   <auto-complete v-model="tags" multiple :suggestions="suggestions"
                  :option-label="optionLabel" v-on:complete="search"
-                 v-on:change="emit('updateTags', tags.map(optionLabel))"
+                 v-on:change="emit('update:modelValue', tags.map(optionLabel))"
                  :placeholder="!tags.length ? props.placeholder : ''">
     <template #option="{option}: {option: TagHint}">
       <span>{{ option.tag }}</span>

@@ -8,3 +8,6 @@ import "./styles.css"
 const app = createApp(App)
 app.use(PrimeVue)
 app.mount("#app")
+
+// disable content menu
+document.addEventListener('contextmenu', event => event.preventDefault());

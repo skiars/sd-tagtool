@@ -1,23 +1,29 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {ref, computed} from 'vue'
 import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
 import TagInput from './TagInput.vue'
 
+const props = defineProps<{
+  modelValue: string[]
+}>()
+
 const emit = defineEmits<{
+  (e: 'update:modelValue', value: string[]): void
   (e: 'filter', value: { tags: string[], exclude: boolean }): void
 }>()
 
-let tags: string[] = []
-let exclude = ref(false)
-
+const exclude = ref(false)
+const tags = computed({
+  get() { return props.modelValue },
+  set(x: string[]) { emit('update:modelValue', x) }
+})
 </script>
 
 <template>
   <div class="tag-input-container">
-    <tag-input class="tag-input"
-               placeholder="Enter tags and filter images"
-               v-on:updateTags="x => tags = x"/>
+    <tag-input class="tag-input" v-model="tags"
+               placeholder="Enter tags and filter images"/>
     <checkbox v-model="exclude" :binary="true" inputId="image-filter-checkbox"/>
     <label for="image-filter-checkbox">exclude</label>
     <Button rounded v-on:click="emit('filter', {tags: tags, exclude: exclude})">

@@ -146,7 +146,6 @@ fn list_csv<P: AsRef<Path>>(path: P) -> io::Result<Vec<PathBuf>> {
     })).collect::<Vec<_>>())
 }
 
-
 impl TagHintDB {
     pub fn new() -> Self {
         TagHintDB {
