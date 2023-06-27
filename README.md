@@ -12,6 +12,7 @@ This is a simple tag editor for stable diffusion datasets. It can be used to edi
 - Support drag and drop for tags
 - Tags can be inserted/deleted in batches, and the insertion position can be specified
 - Datasets can be filtered by tags
+- Customized tag highlighting
 - Automatic translation (translation to Chinese is now hard-coded, and may require magic to surf the Internet)
 - Quick response
 
@@ -47,6 +48,18 @@ Double-clicking a tag directly in the list of all labels will also insert it int
 Click *Undo* and *Redo* in the *Edit* menu to undo and redo, and you can also use the shortcut keys to do it.
 
 There is no step limit for undo and redo, but there is currently no reasonable interactive feedback (this will lead to you may not know what happened). Also, the undo history is cleared after opening a new directory.
+
+### Tags filter
+
+Enter the tags to be filtered in the tags filter input at the top, and then click the *Filter* button to filter the dataset. Two filtering modes can be selected via the *exclude* checkbox:
+- **Include mode**: when the image has all the tags in the filter, it will be displayed in the filtered list;
+- **Exclude mode**: Images that do not have all the tags in the filter will be shown in the filtered list.
+
+After editing the dataset, you need to click the *Filter* button again to update the filtered dataset. You can enter tags manually, or right-click in the tags list and add specific tags to the filter via the *Add filter* menu.
+
+### Tag highlight
+
+You can choose a highlight color for the tag in *Pick color* of the tag's context menu (click the right mouse button), so that you can find it quickly. When you don't need the tag highlighting anymore, you can clear it by *Clear picked color* in the context menu.
 
 ## Warning
 
