@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, computed, watch} from 'vue'
+import {ref, computed} from 'vue'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
@@ -16,7 +16,7 @@ const emit = defineEmits<{
 }>()
 
 const position = ref<number>()
-let tags: string[] = []
+let tags = ref<string[]>([])
 
 const editAllTags = computed<boolean>({
   get() {
@@ -35,7 +35,7 @@ const editAllTags = computed<boolean>({
                   v-on:update:modelValue="emit('updatePosition', $event)"
                   :inputStyle="{ padding: '0.25em', width: '5em' }"/>
     <span>add tag</span>
-    <tag-input class="tag-input" v-on:updateTags="x => tags = x"
+    <tag-input class="tag-input" v-model="tags"
                placeholder="Separate tags with ',' or press Enter"/>
     <Button rounded v-on:click="emit('updateTags', tags)">Insert</Button>
     <span>edit all tags</span>
