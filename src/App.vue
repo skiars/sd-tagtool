@@ -10,6 +10,7 @@ import TagEditor from './components/TagEditor.vue'
 import ImageFilter from './components/ImageFilter.vue'
 import {TagData} from './lib/types'
 import {CollectTags, EditorHistory, collectTags, deleteTags, insertTags} from './lib/utils'
+import * as state from './lib/state'
 
 import {open} from '@tauri-apps/api/dialog'
 import {invoke} from '@tauri-apps/api/tauri'
@@ -27,7 +28,6 @@ const selected = ref<number[]>([])
 const selTags = ref(collectTags())
 const allTags = ref(collectTags())
 const editAllTags = ref(false)
-const translatedTags = ref(false)
 
 async function openFolder(path?: string) {
   if (!path) {
@@ -149,7 +149,7 @@ platform().then(name => {
 })
 
 listen('translate', event => {
-  translatedTags.value = event.payload as boolean
+  state.translate.value = event.payload as boolean
 })
 </script>
 
@@ -163,17 +163,17 @@ listen('translate', event => {
         <splitter-panel class="column-flex">
           <image-filter v-on:filter="onFilterApply"/>
           <tag-list style="flex-grow: 1" :tags="selTags.tags"
-                    editable :nodrag="selected.length > 1" :translate="translatedTags"
+                    editable :nodrag="selected.length > 1"
                     v-on:sorted="onTagsChange"
                     v-on:delete="x => onDeleteTags(selTags, x)"/>
-          <tag-editor style="flex-shrink: 0" :translate="translatedTags"
+          <tag-editor style="flex-shrink: 0"
                       v-model:editAllTags="editAllTags"
                       v-on:updatePosition="x => tagInsPos = x"
                       v-on:updateTags="onInsertTags"/>
         </splitter-panel>
         <splitter-panel class="column-flex">
           <tag-list style="flex-grow: 1" :tags="allTags.tags"
-                    :editable="editAllTags" nodrag :translate="translatedTags"
+                    :editable="editAllTags" nodrag
                     v-on:delete="e => onDeleteTags(allTags, e)"
                     v-on:active="onInsertTags"/>
         </splitter-panel>

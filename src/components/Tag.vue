@@ -2,10 +2,10 @@
 import {computed, ref, onMounted, watch} from 'vue'
 import 'primeicons/primeicons.css'
 import {invoke} from '@tauri-apps/api/tauri'
+import * as state from '../lib/state'
 
 const props = defineProps<{
   label: string,
-  translate?: true | boolean
   removable?: true | boolean
 }>()
 
@@ -13,18 +13,18 @@ const emit = defineEmits<{
   (e: 'delete'): void
 }>()
 
-const trLabel = ref<string>('')
+const trLabel = ref<string>()
 const tr = computed<boolean>(() => Boolean(trLabel.value) && trLabel.value != props.label)
 
 onMounted(async () => {
-  if (props.translate)
+  if (state.translate.value)
     trLabel.value = await invoke('translate_tag', {text: props.label}) as string
 })
 
-watch(() => props.translate, async enable => {
+watch(() => state.translate.value, async enable => {
   trLabel.value = enable
     ? await invoke('translate_tag', {text: props.label}) as string
-    : ''
+    : undefined
 })
 </script>
 

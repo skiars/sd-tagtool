@@ -6,7 +6,6 @@ import Tag from './Tag.vue'
 const props = defineProps<{
   tags: string[]
   nodrag?: true | boolean
-  translate?: true | boolean
   editable?: true | boolean
 }>()
 
@@ -30,7 +29,7 @@ const emit = defineEmits<{
              v-on:end="emit('sorted', tags)">
     <template #item="{ element }">
       <Tag class="list-group-item tag-item" :style="nodrag ? null : 'cursor: move'"
-           :label="element" :removable="props.editable" :translate="props.translate"
+           :label="element" :removable="props.editable"
            v-on:delete="emit('delete', [element])"
            v-on:dblclick="emit('active', [element])"/>
     </template>

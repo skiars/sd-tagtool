@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import {ref, watch} from 'vue'
 import {invoke} from '@tauri-apps/api/tauri'
-import AutoComplete, {AutoCompleteCompleteEvent} from "primevue/autocomplete";
+import AutoComplete, {AutoCompleteCompleteEvent} from 'primevue/autocomplete'
+import * as state from '../lib/state'
 
 const props = defineProps<{
-  translate?: true | boolean
   placeholder?: string
 }>()
 
@@ -22,8 +22,22 @@ interface TagHint {
 const tags = ref<TagHint[]>([])
 const suggestions = ref<TagHint[]>([]);
 
+watch(state.translate, translateSuggestions)
+
 function optionLabel(s: TagHint) {
   return s.suggest ? s.suggest : s.tag
+}
+
+function translateSuggestions() {
+  const translate = state.translate.value
+  suggestions.value.forEach(x => {
+    if (translate) {
+      invoke('translate_tag', {text: x.tag})
+          .then(tr => x.translate = tr as string)
+    } else {
+      x.translate = undefined
+    }
+  })
 }
 
 async function search(event: AutoCompleteCompleteEvent) {
@@ -38,12 +52,7 @@ async function search(event: AutoCompleteCompleteEvent) {
     tags.value = tags.value.concat(parsed.map(x => ({tag: x})))
     if (unfinished && !suggestions.value.some(x => x.tag == unfinished))
       suggestions.value.unshift({tag: unfinished})
-    if (props.translate) {
-      suggestions.value.forEach(x => {
-        invoke('translate_tag', {text: x.tag})
-            .then(tr => x.translate = tr as string)
-      })
-    }
+    translateSuggestions()
   } else {
     suggestions.value = []
   }
@@ -58,7 +67,7 @@ function readableNumber(x: number): string {
   <auto-complete v-model="tags" multiple :suggestions="suggestions"
                  :option-label="optionLabel" v-on:complete="search"
                  v-on:change="emit('updateTags', tags.map(optionLabel))"
-                 :placeholder="!tags.length ? placeholder : ''">
+                 :placeholder="!tags.length ? props.placeholder : ''">
     <template #option="{option}: {option: TagHint}">
       <span>{{ option.tag }}</span>
       <span v-if="option.suggest">&nbsp;→ {{ option.suggest }}</span>
