@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import {ref} from 'vue'
+import {useRouter} from 'vue-router'
 
 import Splitter from 'primevue/splitter'
 import SplitterPanel from 'primevue/splitterpanel'
 
-import ImageList from './components/ImageList.vue'
-import TagList from './components/TagList.vue'
-import TagEditor from './components/TagEditor.vue'
-import ImageFilter from './components/ImageFilter.vue'
-import {TagData} from './lib/types'
-import {CollectTags, EditorHistory, collectTags, deleteTags, insertTags} from './lib/utils'
-import * as state from './lib/state'
+import ImageList from './ImageList.vue'
+import TagList from './TagList.vue'
+import TagEditor from './TagEditor.vue'
+import ImageFilter from './ImageFilter.vue'
+import {TagData} from '../lib/types'
+import {CollectTags, EditorHistory, collectTags, deleteTags, insertTags} from '../lib/utils'
+import * as state from '../lib/state'
 
 import {open} from '@tauri-apps/api/dialog'
 import {invoke} from '@tauri-apps/api/tauri'
@@ -18,6 +19,7 @@ import {listen} from '@tauri-apps/api/event'
 import {join} from '@tauri-apps/api/path'
 import {convertFileSrc} from '@tauri-apps/api/tauri'
 import {platform} from '@tauri-apps/api/os'
+import {appWindow} from '@tauri-apps/api/window'
 
 let history: EditorHistory = new EditorHistory
 let tagInsPos: number | undefined = undefined
@@ -29,6 +31,7 @@ const selected = ref<number[]>([])
 const selTags = ref(collectTags())
 const allTags = ref(collectTags())
 const editAllTags = ref(false)
+const router = useRouter()
 
 async function openFolder(path?: string) {
   if (!path) {
@@ -57,6 +60,7 @@ async function openFolder(path?: string) {
   selected.value = []
   updateTags(data)
   history = new EditorHistory(dataset.value)
+  await appWindow.setTitle(`sd-tagtool - ${path}`)
 }
 
 function selectedTags(d: { index: number }[]) {
@@ -117,6 +121,8 @@ function onFilterApply(e: { tags: string[], exclude: boolean }) {
 }
 
 async function menuAction(menu: string) {
+  if (router.currentRoute.value.path != '/')
+    return
   switch (menu) {
     case 'open':
       await openFolder()
@@ -136,6 +142,8 @@ async function menuAction(menu: string) {
     case 'redo':
       updateTags(history.redo())
       break
+    case 'settings':
+      router.push('/settings').then()
   }
 }
 
@@ -159,6 +167,10 @@ platform().then(name => {
 listen('translate', event => {
   state.translate.value = event.payload as boolean
 })
+
+// load tags database
+const date = Date.now()
+invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.now() - date} ms.`))
 </script>
 
 <template>

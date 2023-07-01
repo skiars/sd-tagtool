@@ -3,7 +3,6 @@ use std::fs;
 use std::fs::{File};
 use std::path::Path;
 use std::path::PathBuf;
-use std::time::{SystemTime};
 use std::collections::HashMap;
 use simsearch::{SimSearch, SearchOptions};
 
@@ -155,13 +154,10 @@ impl TagHintDB {
         }
     }
     pub fn read_db<P: AsRef<Path>>(&mut self, db_path: P) {
-        let start_time = SystemTime::now();
         let csv_list = list_csv(db_path).unwrap_or(Vec::new());
         for p in csv_list {
             println!("load tags.db: {}", p.to_str().unwrap());
             read_tag_csv(self, p).unwrap_or(());
         }
-        println!("-- scanned {} tags took {} ms", self.database.len(),
-                 SystemTime::now().duration_since(start_time).unwrap().as_millis());
     }
 }

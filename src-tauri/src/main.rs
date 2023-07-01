@@ -7,9 +7,10 @@ mod tagutils;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use tauri::{CustomMenuItem, Manager, Menu, MenuItem, Runtime, State, Submenu, WindowMenuEvent};
+use tauri::{AppHandle, CustomMenuItem, Manager, Menu,
+            MenuItem, Runtime, State, Submenu, WindowMenuEvent};
 use translate::{TranslateCache, translate};
-use crate::tagutils::{QueryTag, TagData, TagHint, TagHintDB};
+use tagutils::{QueryTag, TagData, TagHint, TagHintDB};
 
 #[derive(Default)]
 struct CmdState {
@@ -40,8 +41,8 @@ fn parse_tags(text: &str) -> Vec<String> {
 }
 
 #[tauri::command]
-async fn translate_tag(text: String, state: State<'_, CmdState>) -> Result<String, ()> {
-    Ok(translate(&state.translate_cache, "zh-CN", text.as_str()).await)
+async fn translate_tag(text: &str, tl: &str, state: State<'_, CmdState>) -> Result<String, ()> {
+    Ok(translate(&state.translate_cache, tl, text).await)
 }
 
 #[tauri::command]
@@ -51,18 +52,56 @@ fn query_tag(text: &str, state: State<'_, CmdState>) -> Vec<QueryTag> {
     matched.iter().take(20).map(|tag| {
         let hint = db.database.get(tag).unwrap();
         match hint {
-        TagHint::Just(x) => QueryTag {
-            tag: tag.clone(),
-            suggest: None,
-            usage_count: Some(x.clone()),
-        },
-        TagHint::Alias(x) => QueryTag {
-            tag: tag.clone(),
-            suggest: Some(x.clone()),
-            usage_count: None,
+            TagHint::Just(x) => QueryTag {
+                tag: tag.clone(),
+                suggest: None,
+                usage_count: Some(x.clone()),
+            },
+            TagHint::Alias(x) => QueryTag {
+                tag: tag.clone(),
+                suggest: Some(x.clone()),
+                usage_count: None,
+            }
         }
-    }
     }).collect::<Vec<_>>()
+}
+
+#[tauri::command]
+async fn load_tags_db<R: Runtime>(app: AppHandle<R>) -> Result<(), ()> {
+    let tags_db_path = app.path_resolver()
+        .resolve_resource("shared/tags.db")
+        .expect("failed to resolve tags.db path");
+    let state: State<CmdState> = app.state();
+    let mut db = state.tags_db.lock().unwrap();
+    *db = TagHintDB::new(); // clean tag records
+    db.read_db(tags_db_path);
+    Ok(())
+}
+
+#[tauri::command]
+fn load_config<R: Runtime>(app: AppHandle<R>) -> Result<serde_json::Value, ()> {
+    let resolver = app.path_resolver();
+    let path = resolver.app_config_dir().map(
+        |e| e.join("config.json")).expect("failed to resolve config path");
+    let rdr = fs::File::open(path).or(Err(()))?;
+    serde_json::from_reader(rdr).or(Err(()))
+}
+
+#[tauri::command]
+fn save_config<R: Runtime>(model: serde_json::Value, app: AppHandle<R>) {
+    let resolver = app.path_resolver();
+    let dir = resolver.app_config_dir().expect("failed to resolve config path");
+    fs::create_dir_all(&dir).unwrap_or(());
+    fs::File::create(dir.join("config.json")).and_then(|f| {
+        serde_json::to_writer_pretty(f, &model).unwrap_or(());
+        Ok(())
+    }).unwrap_or(());
+}
+
+#[tauri::command]
+async fn refresh_cache(state: State<'_, CmdState>) -> Result<(), ()> {
+    state.translate_cache.lock().await.clear();
+    Ok(())
 }
 
 fn window_menu() -> Menu {
@@ -71,8 +110,10 @@ fn window_menu() -> Menu {
         .accelerator("CmdOrCtrl+O");
     let save = CustomMenuItem::new("save".to_string(), "Save")
         .accelerator("CmdOrCtrl+S");
+    let settings = CustomMenuItem::new("settings".to_string(), "Settings");
     let file = Submenu::new("File", Menu::new()
         .add_item(open).add_item(save)
+        .add_native_item(MenuItem::Separator).add_item(settings)
         .add_native_item(MenuItem::Separator).add_native_item(MenuItem::Quit));
 
     let undo = CustomMenuItem::new("undo".to_string(), "Undo")
@@ -96,6 +137,7 @@ fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
         "save" => { event.window().emit("menu", "save").unwrap(); }
         "undo" => { event.window().emit("menu", "undo").unwrap(); }
         "redo" => { event.window().emit("menu", "redo").unwrap(); }
+        "settings" => { event.window().emit("menu", "settings").unwrap(); }
         "translate" => {
             let state: State<CmdState> = event.window().state();
             let tr = !*state.translate_enabled.lock().unwrap();
@@ -112,16 +154,9 @@ fn main() {
     let menu = window_menu();
     tauri::Builder::default()
         .manage(CmdState::default())
-        .setup(|app| {
-            let tags_db_path = app.path_resolver()
-                .resolve_resource("shared/tags.db")
-                .expect("failed to resolve tags.db path");
-            let state: State<CmdState> = app.state();
-            state.tags_db.lock().unwrap().read_db(tags_db_path);
-            Ok(())
-        })
         .invoke_handler(tauri::generate_handler![
-            listdir, save_tags, parse_tags, translate_tag, query_tag
+            listdir, save_tags, parse_tags, translate_tag, query_tag, load_tags_db,
+            load_config, save_config, refresh_cache
         ])
         .menu(menu)
         .on_menu_event(handle_menu)
