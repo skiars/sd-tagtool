@@ -17,15 +17,20 @@ const trLabel = ref<string>()
 const tr = computed<boolean>(() => Boolean(trLabel.value) && trLabel.value != props.label)
 
 onMounted(async () => {
-  if (state.translate.value)
-    trLabel.value = await invoke('translate_tag', {text: props.label}) as string
+  await translateTag()
 })
 
-watch(() => state.translate.value, async enable => {
-  trLabel.value = enable
-    ? await invoke('translate_tag', {text: props.label}) as string
-    : undefined
-})
+watch(() => state.translate.value, translateTag)
+watch(() => state.config.value.translate.language, translateTag)
+
+async function translateTag() {
+  if (state.translate.value)
+    trLabel.value = await invoke('translate_tag', {
+      text: props.label,
+      tl: state.config.value.translate.language}) as string
+  else
+    trLabel.value = undefined
+}
 </script>
 
 <template>
