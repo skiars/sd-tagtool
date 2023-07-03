@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "sd-tagtool",
-    "version": "0.1.2"
+    "version": "1.0.1"
   },
   "tauri": {
     "allowlist": {
