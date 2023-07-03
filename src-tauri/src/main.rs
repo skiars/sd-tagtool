@@ -106,15 +106,16 @@ async fn refresh_cache(state: State<'_, CmdState>) -> Result<(), ()> {
 
 fn window_menu() -> Menu {
     // here `"quit".to_string()` defines the menu item id, and the second parameter is the menu item label.
-    let open = CustomMenuItem::new("open".to_string(), "Open")
+    let open = CustomMenuItem::new("open".to_string(), "Open folder")
         .accelerator("CmdOrCtrl+O");
     let save = CustomMenuItem::new("save".to_string(), "Save")
         .accelerator("CmdOrCtrl+S");
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
     let settings = CustomMenuItem::new("settings".to_string(), "Settings");
     let file = Submenu::new("File", Menu::new()
         .add_item(open).add_item(save)
         .add_native_item(MenuItem::Separator).add_item(settings)
-        .add_native_item(MenuItem::Separator).add_native_item(MenuItem::Quit));
+        .add_native_item(MenuItem::Separator).add_item(quit));
 
     let undo = CustomMenuItem::new("undo".to_string(), "Undo")
         .accelerator("CmdOrCtrl+Z");
@@ -132,7 +133,7 @@ fn window_menu() -> Menu {
 
 fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
     match event.menu_item_id() {
-        "quit" => { std::process::exit(0); }
+        "quit" => { event.window().emit("menu", "quit").unwrap(); }
         "open" => { event.window().emit("menu", "open").unwrap(); }
         "save" => { event.window().emit("menu", "save").unwrap(); }
         "undo" => { event.window().emit("menu", "undo").unwrap(); }

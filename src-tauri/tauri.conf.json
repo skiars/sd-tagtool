@@ -23,6 +23,9 @@
           "**"
         ]
       },
+      "process": {
+        "exit": true
+      },
       "os": {
         "all": true
       },
@@ -39,7 +42,8 @@
         "all": true
       },
       "window": {
-        "setTitle": true
+        "setTitle": true,
+        "close": true
       }
     },
     "bundle": {

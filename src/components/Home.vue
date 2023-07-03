@@ -19,11 +19,14 @@ import {listen} from '@tauri-apps/api/event'
 import {join} from '@tauri-apps/api/path'
 import {convertFileSrc} from '@tauri-apps/api/tauri'
 import {platform} from '@tauri-apps/api/os'
+import {exit} from '@tauri-apps/api/process'
 import {appWindow} from '@tauri-apps/api/window'
+import {confirm, message} from '@tauri-apps/api/dialog'
 
 let history: EditorHistory = new EditorHistory
 let tagInsPos: number | undefined = undefined
 let workDir: string = ''
+let editState: Array<any> | undefined = undefined
 const dataset = ref<TagData[]>([])
 const filteredDataset = ref<TagData[]>([])
 const tagsFilter = ref<string[]>([])
@@ -35,6 +38,10 @@ const router = useRouter()
 
 async function openFolder(path?: string) {
   if (!path) {
+    const msg = 'The work has not been saved, are you sure to open a new folder?'
+    if (editState != history.state() &&
+      !await confirm(msg, {title: 'Confirm open folder', type: 'warning'}))
+      return
     const result = await open({directory: true})
     if (!result)
       return
@@ -60,8 +67,18 @@ async function openFolder(path?: string) {
   selected.value = []
   updateTags(data)
   history = new EditorHistory(dataset.value)
+  editState = undefined
   await appWindow.setTitle(`sd-tagtool - ${path}`)
 }
+
+async function quitApp() {
+  const msg = 'The work has not been saved, are you sure to quit?'
+  if (editState == history.state()
+    || await confirm(msg, {title: 'Quit without save', type: 'warning'}))
+    await exit(0)
+}
+
+appWindow.listen('tauri://close-requested', quitApp)
 
 function selectedTags(d: { index: number }[]) {
   selected.value = d.map(x => x.index)
@@ -134,7 +151,12 @@ async function menuAction(menu: string) {
           text: x.tags.join(', ')
         })
       }))
-      alert('All content has been saved!')
+      editState = history.state()
+      if (dataset.value.length)
+        await message('All content has been saved!', 'Save')
+      break
+    case 'quit':
+      await quitApp()
       break
     case 'undo':
       updateTags(history.undo())

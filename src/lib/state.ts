@@ -14,6 +14,5 @@ const defaultConfig = {
 export const config = ref(defaultConfig)
 
 invoke('load_config').then(e => {
-  console.log('load settings', e)
   config.value = {...defaultConfig, ...e as (typeof defaultConfig)}
 })

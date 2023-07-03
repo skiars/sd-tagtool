@@ -72,15 +72,30 @@ You can choose a highlight color for the tag in *Pick color* of the tag's contex
 
 ## Warning
 
-Remember to save the file before closing sd-tagtool, otherwise all data will be lost! I'm not write confirmation dialog right now. In addition, remember to save the file before opening a new directory or refreshing (the right-click menu has a refresh option, Ctrl + R can also refresh, don't be stupid).
+Don't press Ctrl + R!!! This will refresh the page and lose all data.
 
 ## Development
 
-This project is based on tauri and vue. The build method is as follows:
+This project is based on [Tauri](https://tauri.app/) and [Vue.js](https://vuejs.org/). To build this project, you need to install Nojde.js and pnpm. Use these commands to install to Windows:
 ``` bash
-pnpm install
-pnpm tauri dev
+winget install nodejs # install Node.js
+winget install pnpm   # install pnpm
+```
+Then follow this [document](https://tauri.app/v1/guides/getting-started/prerequisites) to configure the Rust toolchain and WebView2. You can also install rustup with winget, if you use Windows:
+``` bash
+winget install rustup
+```
+
+Use the following commands to build when everything is in place:
+``` bash
+pnpm install   # 安装项目所有的依赖项
+pnpm tauri dev # 构建调试版本程序并启动
+```
+According to my test, `pnpm tauri dev` is abnormal under Linux desktop, and can only be debugged with Windows or macOS.
+
+Build the release version with the these command:
+``` bash
 pnpm tauri build
 ```
 
-For more specific operations, see [GitHubAction configuration](.github/workflows).
+The user-facing installation package is automatically built by GitHub Action, and the specific configuration is [here](.github/workflows).

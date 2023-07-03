@@ -73,15 +73,30 @@ sd-tagtool 支持 Windows，macOS 和 Linux。安装步骤如下：
 
 ## 警告
 
-关闭 sd-tagtool 之前记得保存文件，否则会丢失所有数据。。。我现在没有做确认对话框。另外打开新的目录或者刷新之前也要记得保存文件（右键菜单有刷新选项，Ctrl + R 也可以刷新，不要手贱）。
+不要按 Ctrl + R！！！这会刷新页面并丢失所有数据。
 
 ## 开发
 
-本项目基于 tauri 和 vue。构建方法如下：
+本项目基于 [Tauri](https://tauri.app/) 和 [Vue.js](https://vuejs.org/) 开发。构建此项目需要先安装 Nojde.js 和 pnpm，在 Windows 上可以使用以下命令来安装：
 ``` bash
-pnpm install
-pnpm tauri dev
+winget install nodejs # 安装 Node.js
+winget install pnpm   # 安装 pnpm
+```
+然后参考此[文档](https://tauri.app/v1/guides/getting-started/prerequisites) 配置 Rust 工具链和 WebView2。如果你使用 Windows，那么也可以用 winget 来安装 rustup：
+``` bash
+winget install rustup
+```
+
+一切妥当之后使用以下命令来构建：
+``` bash
+pnpm install   # 安装项目所有的依赖项
+pnpm tauri dev # 构建调试版本程序并启动
+```
+据我测试，Linux 桌面下 `pnpm tauri dev` 不正常，只能用 Windows 或者 macOS 来调试。
+
+使用以下命令构建发布版本：
+``` bash
 pnpm tauri build
 ```
 
-具体的配置可以看 [GitHubAction configuration](.github/workflows).
+面向用户的安装包由 GitHub Action 自动构建，具体的配置在[这里](.github/workflows).

@@ -50,6 +50,12 @@ export class EditorHistory {
     return undefined
   }
 
+  public state(): EditAction[] | undefined {
+    if (this.undoStack.length)
+      return this.undoStack[this.undoStack.length - 1]
+    return undefined
+  }
+
   public dataset: TagData[]
   private undoStack: EditAction[][] = []
   private redoStack: EditAction[][] = []
