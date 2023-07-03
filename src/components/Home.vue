@@ -138,8 +138,11 @@ function onFilterApply(e: { tags: string[], exclude: boolean }) {
 }
 
 async function menuAction(menu: string) {
-  if (router.currentRoute.value.path != '/')
+  if (router.currentRoute.value.path != '/' && menu != 'quit') {
+    await message('This action is only available on the home page!',
+      {title: 'Invalid operation', type: 'warning'})
     return
+  }
   switch (menu) {
     case 'open':
       await openFolder()

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {watch} from 'vue'
 import {useRouter} from 'vue-router'
 import Panel from 'primevue/panel'
 import Dropdown from 'primevue/dropdown'
@@ -13,24 +14,68 @@ const languages = [
   {name: 'Simplified Chinese', code: 'zh-CN'},
 ];
 
-async function onBack() {
-  await invoke('save_config', {model: config.value})
-  await invoke('refresh_cache')
-  router.back()
-}
+watch(config, async value => {
+    await invoke('save_config', {model: value})
+    await invoke('refresh_cache')
+  },
+  {deep: true}
+)
 </script>
 
 <template>
-  <div>
-    Settings
-    <button v-on:click="onBack()">Back</button>
-    <panel header="Translate" toggleable>
-      Target language
-      <dropdown v-model="config.translate.language" :options="languages" option-label="name" option-value="code"/>
-    </panel>
+  <div class="settings-window">
+    <div class="settings-header">
+      <h2>
+        <i class="pi pi-arrow-circle-left" v-on:click="router.back()"/>
+        Settings
+      </h2>
+    </div>
+    <div class="settings-panel">
+      <panel header="Translate" toggleable>
+        Target language
+        <dropdown v-model="config.translate.language" :options="languages"
+                  option-label="name" option-value="code"/>
+      </panel>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.settings-window {
+  max-width: 750px;
+  min-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
+.settings-header {
+  margin: 0 8px;
+}
+
+.settings-panel {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.settings-panel > * {
+  margin: 8px;
+}
+
+h2 {
+  color: var(--text-color);
+}
+
+i {
+  padding: 2px;
+  font-size: 1.2em;
+  border-radius: 1em;
+  transition: background-color 0.25s;
+}
+
+i:hover {
+  cursor: pointer;
+  background-color: var(--surface-300);
+}
 </style>
