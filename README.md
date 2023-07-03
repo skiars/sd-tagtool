@@ -20,6 +20,15 @@ This is a simple tag editor for stable diffusion datasets. It can be used to edi
 
 ![screenshot.png](images/screenshot.webp)
 
+## Download / Install
+
+sd-tagtool supports Windows, macOS, and Linux. The installation steps are as follows:
+1. Find the latest version on the [Release](https://github.com/skiars/sd-tagtool/releases) page;
+2. Download the installation package file from the **Assets** list according to the OS, for example, the suffix of the Windows installation file is **_.msi_** or **_.exe_**;
+3. Run the installation file.
+
+**Note**: sd-tagtool may require newer Windows 10 or Windows 11. Also, I don't often test for compatibility with Linux and macOS.
+
 ## Usage
 
 You can try the basic usage by yourself, only a few details are added here.

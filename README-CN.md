@@ -17,6 +17,15 @@
 ## 截图
 ![screenshot.png](images/screenshot.webp)
 
+## 下载 / 安装
+
+sd-tagtool 支持 Windows，macOS 和 Linux。安装步骤如下：
+1. 在 [Release](https://github.com/skiars/sd-tagtool/releases) 页面找到最新的版本；
+2. 依据操作系统从 **Assets** 列表中下载安装包文件，例如 Windows 安装包的后缀是 **_.msi_** 或者 **_.exe_**；
+3. 运行安装文件。
+
+**备注**：sd-tagtool 可能需要较新的 Windows 10 或者 Windows 11 才能运行。此外，我较少测试 Linux 和 MacOS 的兼容情况。
+
 ## 使用方法
 
 基本的用法大家可以自己尝试，这里只补充几个细节。
