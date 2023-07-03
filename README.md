@@ -88,8 +88,8 @@ winget install rustup
 
 Use the following commands to build when everything is in place:
 ``` bash
-pnpm install   # 安装项目所有的依赖项
-pnpm tauri dev # 构建调试版本程序并启动
+pnpm install   # install all dependencies
+pnpm tauri dev # build the debug program and start
 ```
 According to my test, `pnpm tauri dev` is abnormal under Linux desktop, and can only be debugged with Windows or macOS.
 
