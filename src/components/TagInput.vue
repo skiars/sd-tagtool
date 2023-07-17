@@ -2,11 +2,13 @@
 import {ref, watch, onMounted} from 'vue'
 import {invoke} from '@tauri-apps/api/tauri'
 import AutoComplete, {AutoCompleteCompleteEvent} from 'primevue/autocomplete'
+import Fuse from 'fuse.js'
 import * as state from '../lib/state'
 
 const props = defineProps<{
   modelValue: string[]
-  placeholder?: string
+  placeholder?: string,
+  suggestions?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -42,26 +44,39 @@ function translateSuggestions() {
   const translate = state.translate.value
   suggestions.value.forEach(x => {
     if (translate) {
-      invoke('translate_tag', {text: x.tag})
-        .then(tr => x.translate = tr as string)
+      invoke('translate_tag', {
+        text: x.tag,
+        tl: state.config.value.translate.language
+      }).then(tr => x.translate = tr as string)
     } else {
       x.translate = undefined
     }
   })
 }
 
+const queryTag = (() => {
+  let fuse = new Fuse(props.suggestions || [])
+  watch(() => props.suggestions, x => fuse = new Fuse(x || []))
+  const queryDB = async (x: string) => {
+    let result = await invoke('query_tag', {text: x}) as TagHint[]
+    if (!result.some(a => a.tag == x))
+      result.unshift({tag: x})
+    return result
+  }
+  return async (x: string) => props.suggestions
+    ? fuse.search(x).map<TagHint>(x => ({tag: x.item}))
+    : await queryDB(x)
+})()
+
 async function search(event: AutoCompleteCompleteEvent) {
   let parsed: string[] = await invoke('parse_tags', {text: event.query})
   if (parsed.length) {
     const unfinished = /,\s*$/.test(event.query) ? '' : parsed.pop()
-    if (unfinished) {
-      suggestions.value = await invoke('query_tag', {text: unfinished})
-    }
+    if (unfinished)
+      suggestions.value = await queryTag(unfinished)
     let target = event.originalEvent.target as HTMLInputElement
-    target.value = unfinished ? unfinished : '';
+    target.value = unfinished ? unfinished : ''
     tags.value = tags.value.concat(parsed.map(x => ({tag: x})))
-    if (unfinished && !suggestions.value.some(x => x.tag == unfinished))
-      suggestions.value.unshift({tag: unfinished})
     translateSuggestions()
   } else {
     suggestions.value = []

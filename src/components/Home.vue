@@ -206,7 +206,9 @@ invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.
     <splitter-panel :size="80">
       <splitter layout="vertical">
         <splitter-panel class="column-flex">
-          <image-filter v-model="tagsFilter" v-on:filter="onFilterApply"/>
+          <image-filter v-model="tagsFilter"
+                        :suggestions="allTags.tags"
+                        v-on:filter="onFilterApply"/>
           <tag-list style="flex-grow: 1" :tags="selTags.tags"
                     editable :nodrag="selected.length > 1"
                     v-on:sorted="onTagsChange"

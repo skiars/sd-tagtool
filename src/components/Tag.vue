@@ -27,7 +27,8 @@ async function translateTag() {
   if (state.translate.value)
     trLabel.value = await invoke('translate_tag', {
       text: props.label,
-      tl: state.config.value.translate.language}) as string
+      tl: state.config.value.translate.language
+    }) as string
   else
     trLabel.value = undefined
 }

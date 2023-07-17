@@ -21,7 +21,7 @@ watch(selected, value => {
 
 <template>
   <data-table :value="props.dataset"
-             v-model:selection="selected" selection-mode="multiple" class="image-list">
+              v-model:selection="selected" selection-mode="multiple" class="image-list">
     <template #empty>
       <div class="empty-list">There are no images to show.</div>
     </template>

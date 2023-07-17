@@ -5,7 +5,8 @@ import Checkbox from 'primevue/checkbox'
 import TagInput from './TagInput.vue'
 
 const props = defineProps<{
-  modelValue: string[]
+  modelValue: string[],
+  suggestions: string[]
 }>()
 
 const emit = defineEmits<{
@@ -15,14 +16,18 @@ const emit = defineEmits<{
 
 const exclude = ref(false)
 const tags = computed({
-  get() { return props.modelValue },
-  set(x: string[]) { emit('update:modelValue', x) }
+  get() {
+    return props.modelValue
+  },
+  set(x: string[]) {
+    emit('update:modelValue', x)
+  }
 })
 </script>
 
 <template>
   <div class="tag-input-container">
-    <tag-input class="tag-input" v-model="tags"
+    <tag-input class="tag-input" v-model="tags" :suggestions="suggestions"
                placeholder="Enter tags and filter images"/>
     <checkbox v-model="exclude" :binary="true" inputId="image-filter-checkbox"/>
     <label for="image-filter-checkbox">exclude</label>

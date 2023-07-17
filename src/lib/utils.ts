@@ -66,7 +66,7 @@ export interface CollectTags {
   tags: string[]
 }
 
-export function collectTags(dataset: TagData[] = []) {
+export function collectTags(dataset: TagData[] = []): CollectTags {
   let collect: CollectTags = {
     collect: new Map,
     tags: []
