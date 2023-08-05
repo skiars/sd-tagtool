@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {ref, computed} from 'vue'
 import Button from 'primevue/button'
-import Checkbox from 'primevue/checkbox'
+import Dropdown from 'primevue/dropdown'
 import TagInput from './TagInput.vue'
+import {FilterMode} from '../lib/utils'
 
 const props = defineProps<{
   modelValue: string[],
@@ -11,10 +12,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string[]): void
-  (e: 'filter', value: { tags: string[], exclude: boolean }): void
+  (e: 'filter', value: { tags: string[], mode: FilterMode }): void
 }>()
 
-const exclude = ref(false)
+const filterMode = ref(FilterMode.IncludeAny)
 const tags = computed({
   get() {
     return props.modelValue
@@ -23,15 +24,22 @@ const tags = computed({
     emit('update:modelValue', x)
   }
 })
+
+const filterOptions = [
+  {name: 'include any', value: FilterMode.IncludeAny},
+  {name: 'include all', value: FilterMode.IncludeAll},
+  {name: 'exclude', value: FilterMode.Exclude},
+]
 </script>
 
 <template>
   <div class="tag-input-container">
     <tag-input class="tag-input" v-model="tags" :suggestions="suggestions"
                placeholder="Enter tags and filter images"/>
-    <checkbox v-model="exclude" :binary="true" inputId="image-filter-checkbox"/>
-    <label for="image-filter-checkbox">exclude</label>
-    <Button rounded v-on:click="emit('filter', {tags: tags, exclude: exclude})">
+    <dropdown class="filter-dropdown"
+              v-model="filterMode" :options="filterOptions"
+              optionLabel="name" optionValue="value"/>
+    <Button rounded v-on:click="emit('filter', {tags: tags, mode: filterMode})">
       Filter
     </Button>
   </div>
@@ -46,6 +54,10 @@ const tags = computed({
 
 .tag-input {
   flex-grow: 1;
+}
+
+.filter-dropdown {
+  width: 7.5em;
 }
 
 label {

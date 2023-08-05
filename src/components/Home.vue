@@ -10,7 +10,7 @@ import TagList from './TagList.vue'
 import TagEditor from './TagEditor.vue'
 import ImageFilter from './ImageFilter.vue'
 import {TagData} from '../lib/types'
-import {CollectTags, EditorHistory, collectTags, deleteTags, insertTags} from '../lib/utils'
+import {CollectTags, EditorHistory, collectTags, deleteTags, insertTags, FilterMode} from '../lib/utils'
 import * as state from '../lib/state'
 
 import {open} from '@tauri-apps/api/dialog'
@@ -117,19 +117,29 @@ function onAddTagFilter(e: string[]) {
   tagsFilter.value = tagsFilter.value.concat(e.filter(x => !set.has(x)))
 }
 
-function onFilterApply(e: { tags: string[], exclude: boolean }) {
+function onFilterApply(e: { tags: string[], mode: FilterMode }) {
   if (e.tags) {
-    function include(x: TagData): boolean {
+    function includeAny(x: TagData): boolean {
       const s = new Set(x.tags)
-      return e.tags.every(a => s.has(a))
+      return e.tags.some(a => s.has(a))
     }
 
-    function exclude(x: TagData): boolean {
-      const s = new Set(x.tags)
-      return !e.tags.some(a => s.has(a))
+    let filter: (x: TagData) => boolean
+    switch (e.mode) {
+      case FilterMode.IncludeAny:
+        filter = includeAny
+        break
+      case FilterMode.IncludeAll:
+        filter = x => {
+          const s = new Set(x.tags)
+          return e.tags.every(a => s.has(a))
+        }
+        break;
+      case FilterMode.Exclude:
+        filter = x => !includeAny(x)
+        break
     }
-
-    filteredDataset.value = dataset.value.filter(e.exclude ? exclude : include)
+    filteredDataset.value = dataset.value.filter(filter)
   } else {
     filteredDataset.value = dataset.value
   }

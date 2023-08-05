@@ -5,6 +5,12 @@ interface EditAction {
   tags: string[]
 }
 
+export enum FilterMode {
+  IncludeAny,
+  IncludeAll,
+  Exclude
+}
+
 export class EditorHistory {
   constructor(dataset: TagData[] = []) {
     this.dataset = dataset

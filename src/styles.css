@@ -58,3 +58,7 @@ body {
 .p-autocomplete .p-autocomplete-multiple-container .p-autocomplete-token .p-autocomplete-token-icon {
   margin-left: 0.2em;
 }
+
+.p-dropdown .p-dropdown-trigger {
+  width: 1.5rem;
+}
