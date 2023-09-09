@@ -89,7 +89,7 @@ function readableNumber(x: number): string {
 </script>
 
 <template>
-  <auto-complete v-model="tags" multiple :suggestions="suggestions"
+  <auto-complete style="flex: 1" multiple v-model="tags" :suggestions="suggestions"
                  :option-label="optionLabel" v-on:complete="search"
                  v-on:change="emit('update:modelValue', tags.map(optionLabel))"
                  :placeholder="!tags.length ? props.placeholder : ''">

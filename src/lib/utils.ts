@@ -67,16 +67,13 @@ export class EditorHistory {
   private redoStack: EditAction[][] = []
 }
 
+function removeDuplicates<T>(x: T[]): T[] {
+  let ts: Set<T> = new Set
+  return x.filter(x => x && !ts.has(x) && ts.add(x))
+}
+
 export function collectTags(dataset: TagData[]): string[] {
-  let set: Set<string> = new Set
-  let tags: string[] = []
-  dataset.forEach(x => x.tags.forEach(t => {
-    if (!set.has(t)) {
-      tags.push(t)
-      set.add(t)
-    }
-  }))
-  return tags
+  return removeDuplicates(dataset.flatMap(x => x.tags))
 }
 
 export function deleteTags(dataset: TagData[], tags: string[]): EditAction[] {
@@ -97,17 +94,16 @@ export function deleteTags(dataset: TagData[], tags: string[]): EditAction[] {
 export function insertTags(dataset: TagData[],
                            tags: string[],
                            position: number | undefined): EditAction[] {
-  let ts: Set<string> = new Set
-  // Remove duplicates and empty items
-  tags = tags.filter(x => x && !ts.has(x) && ts.add(x))
+  tags = removeDuplicates(tags)
   if (!tags.length)
     return []
   if (typeof (position) != 'number') { // auto mode
     return dataset.map(x => {
-      ts = new Set(x.tags)
+      const ts: Set<string> = new Set(x.tags)
       return {index: x.key, tags: x.tags.concat(tags.filter(a => !ts.has(a)))}
     })
   }
+  const ts: Set<string> = new Set(tags)
   return dataset.map(x => {
     let s1: string[] = x.tags.filter(a => !ts.has(a))
     let s2: string[] = []
@@ -117,4 +113,42 @@ export function insertTags(dataset: TagData[],
       s2 = s1.splice(s1.length + position, s1.length)
     return {index: x.key, tags: s1.concat(tags).concat(s2)}
   })
+}
+
+export function replaceTags(dataset: TagData[], from: string[], to: string[]): EditAction[] {
+  from = removeDuplicates(from)
+  to = removeDuplicates(to)
+  if (!from.length)
+    return [] //  do nothing
+  if (!to.length)
+    return deleteTags(dataset, from)
+  let repl: Map<string, string[]> = new Map
+  let n = Math.min(from.length, to.length)
+  for (let i = 0; i < n; i++)
+    repl.set(from[i], [to[i]])
+  for (; n < from.length; n++)
+    repl.set(from[n], [])
+  if (to.length > from.length)
+    repl.set(from[from.length - 1], to.slice(from.length - 1))
+  let edited: EditAction[] = []
+  dataset.forEach(x => {
+    let replaced: string[] = []
+    let edit = false
+    x.tags.forEach(x => {
+      const r = repl.get(x)
+      if (r != undefined) {
+        edit = true
+        replaced = replaced.concat(r)
+      } else
+        replaced.push(x)
+    })
+    if (edit) {
+      replaced = removeDuplicates(replaced)
+      edited.push({
+        index: x.key,
+        tags: replaced
+      })
+    }
+  })
+  return edited
 }

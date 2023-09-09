@@ -10,7 +10,7 @@ import TagList from './TagList.vue'
 import TagEditor from './TagEditor.vue'
 import ImageFilter from './ImageFilter.vue'
 import {TagData} from '../lib/types'
-import {EditorHistory, collectTags, deleteTags, insertTags, FilterMode} from '../lib/utils'
+import {EditorHistory, collectTags, deleteTags, insertTags, FilterMode, replaceTags} from '../lib/utils'
 import * as state from '../lib/state'
 
 import {open} from '@tauri-apps/api/dialog'
@@ -96,6 +96,12 @@ function onDeleteTags(d: TagData[], tags: string[]) {
 
 function onInsertTags(tags: string[]) {
   history.edit(insertTags(selectedDataset(), tags, tagInsPos))
+}
+
+function onReplaceTags({from, to}: { from: string[], to: string[] }) {
+  console.log(from, to)
+  const ds = editAllTags.value ? dataset.value : selectedDataset()
+  history.edit(replaceTags(ds, from, to))
 }
 
 function onAddTagFilter(e: string[]) {
@@ -214,7 +220,8 @@ invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.
           <tag-editor style="flex-shrink: 0"
                       v-model:editAllTags="editAllTags"
                       v-on:updatePosition="x => tagInsPos = x"
-                      v-on:updateTags="onInsertTags"/>
+                      v-on:updateTags="onInsertTags"
+                      v-on:replaceTags="onReplaceTags"/>
         </splitter-panel>
         <splitter-panel class="column-flex">
           <tag-list style="flex-grow: 1" :tags="allTags"

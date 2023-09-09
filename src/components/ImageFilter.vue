@@ -34,12 +34,12 @@ const filterOptions = [
 
 <template>
   <div class="tag-input-container">
-    <tag-input class="tag-input" v-model="tags" :suggestions="suggestions"
+    <tag-input v-model="tags" :suggestions="suggestions"
                placeholder="Enter tags and filter images"/>
     <dropdown class="filter-dropdown"
               v-model="filterMode" :options="filterOptions"
               optionLabel="name" optionValue="value"/>
-    <Button rounded v-on:click="emit('filter', {tags: tags, mode: filterMode})">
+    <Button class="fixed" rounded v-on:click="emit('filter', {tags: tags, mode: filterMode})">
       Filter
     </Button>
   </div>
@@ -52,12 +52,13 @@ const filterOptions = [
   gap: 0.5em;
 }
 
-.tag-input {
-  flex-grow: 1;
-}
-
 .filter-dropdown {
   width: 7.5em;
+}
+
+.fixed {
+  flex-shrink: 0;
+  align-self: flex-start;
 }
 
 label {
