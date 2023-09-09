@@ -67,39 +67,29 @@ export class EditorHistory {
   private redoStack: EditAction[][] = []
 }
 
-export interface CollectTags {
-  collect: Map<string, Set<number>>
-  tags: string[]
-}
-
-export function collectTags(dataset: TagData[] = []): CollectTags {
-  let collect: CollectTags = {
-    collect: new Map,
-    tags: []
-  }
+export function collectTags(dataset: TagData[]): string[] {
+  let set: Set<string> = new Set
+  let tags: string[] = []
   dataset.forEach(x => x.tags.forEach(t => {
-    if (!collect.collect.get(t)?.add(x.key)) {
-      collect.tags.push(t)
-      collect.collect.set(t, new Set([x.key]))
+    if (!set.has(t)) {
+      tags.push(t)
+      set.add(t)
     }
   }))
-  return collect
+  return tags
 }
 
-export function deleteTags(dataset: TagData[], collect: CollectTags, tags: string[]): EditAction[] {
-  let del: Map<number, Set<string>> = new Map
-  tags.forEach(t => {
-    collect.collect.get(t)?.forEach(i => {
-      if (!del.get(i)?.add(t))
-        del.set(i, new Set([t]))
-    })
-  })
+export function deleteTags(dataset: TagData[], tags: string[]): EditAction[] {
+  let del: Set<string> = new Set(tags)
   let edited: EditAction[] = []
-  del.forEach((t, i) => {
-    edited.push({
-      index: i,
-      tags: dataset[i].tags.filter(x => !t.has(x))
-    })
+  dataset.forEach(x => {
+    const deleted = x.tags.filter(x => !del.has(x))
+    if (deleted.length < x.tags.length) {
+      edited.push({
+        index: x.key,
+        tags: deleted
+      })
+    }
   })
   return edited
 }

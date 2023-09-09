@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {useRouter} from 'vue-router'
 
 import Splitter from 'primevue/splitter'
@@ -10,7 +10,7 @@ import TagList from './TagList.vue'
 import TagEditor from './TagEditor.vue'
 import ImageFilter from './ImageFilter.vue'
 import {TagData} from '../lib/types'
-import {CollectTags, EditorHistory, collectTags, deleteTags, insertTags, FilterMode} from '../lib/utils'
+import {EditorHistory, collectTags, deleteTags, insertTags, FilterMode} from '../lib/utils'
 import * as state from '../lib/state'
 
 import {open} from '@tauri-apps/api/dialog'
@@ -31,10 +31,11 @@ const dataset = ref<TagData[]>([])
 const filteredDataset = ref<TagData[]>([])
 const tagsFilter = ref<string[]>([])
 const selected = ref<number[]>([])
-const selTags = ref(collectTags())
-const allTags = ref(collectTags())
 const editAllTags = ref(false)
 const router = useRouter()
+
+const selTags = computed(() => collectTags(selectedDataset()))
+const allTags = computed(() => collectTags(dataset.value).sort())
 
 async function openFolder(path?: string) {
   if (!path) {
@@ -65,7 +66,6 @@ async function openFolder(path?: string) {
   dataset.value = data
   filteredDataset.value = data
   selected.value = []
-  updateTags(data)
   history = new EditorHistory(dataset.value)
   editState = undefined
   await appWindow.setTitle(`sd-tagtool - ${path}`)
@@ -80,36 +80,22 @@ async function quitApp() {
 
 appWindow.listen('tauri://close-requested', quitApp)
 
-function selectedTags(d: { index: number }[]) {
-  selected.value = d.map(x => x.index)
-  selTags.value = collectTags(d.map(x => dataset.value[x.index]))
-}
-
 function onTagsChange(x: string[]) {
-  if (selected.value.length == 1) {
-    const d = history.edit([{index: selected.value[0], tags: x}])
-    updateTags(d)
-  }
+  if (selected.value.length == 1)
+    history.edit([{index: selected.value[0], tags: x}])
 }
 
-function updateTags(d: TagData[] | undefined) {
-  if (d) {
-    selTags.value = collectTags(selected.value.map(x => d[x]))
-    allTags.value = collectTags(d)
-    allTags.value.tags.sort()
-  }
+function selectedDataset(): TagData[] {
+  const sel: Set<number> = new Set(selected.value)
+  return dataset.value.filter(x => sel.has(x.key))
 }
 
-function onDeleteTags(collect: CollectTags, tags: string[]) {
-  const edit = deleteTags(dataset.value, collect, tags)
-  updateTags(history.edit(edit))
+function onDeleteTags(d: TagData[], tags: string[]) {
+  history.edit(deleteTags(d, tags))
 }
 
 function onInsertTags(tags: string[]) {
-  const sel: Set<number> = new Set(selected.value)
-  const data = dataset.value.filter(x => sel.has(x.key))
-  const edit = insertTags(data, tags, tagInsPos)
-  updateTags(history.edit(edit))
+  history.edit(insertTags(selectedDataset(), tags, tagInsPos))
 }
 
 function onAddTagFilter(e: string[]) {
@@ -144,7 +130,6 @@ function onFilterApply(e: { tags: string[], mode: FilterMode }) {
     filteredDataset.value = dataset.value
   }
   selected.value = []
-  selTags.value = collectTags()
 }
 
 async function menuAction(menu: string) {
@@ -172,13 +157,14 @@ async function menuAction(menu: string) {
       await quitApp()
       break
     case 'undo':
-      updateTags(history.undo())
+      history.undo()
       break
     case 'redo':
-      updateTags(history.redo())
+      history.redo()
       break
     case 'settings':
       router.push('/settings').then()
+      break
   }
 }
 
@@ -211,18 +197,19 @@ invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.
 <template>
   <splitter class="main-content">
     <splitter-panel :size="20">
-      <image-list :dataset="filteredDataset" v-on:select="selectedTags"/>
+      <image-list :dataset="filteredDataset"
+                  v-on:select="e => selected = e.map(x => x.index)"/>
     </splitter-panel>
     <splitter-panel :size="80">
       <splitter layout="vertical">
         <splitter-panel class="column-flex">
           <image-filter v-model="tagsFilter"
-                        :suggestions="allTags.tags"
+                        :suggestions="allTags"
                         v-on:filter="onFilterApply"/>
-          <tag-list style="flex-grow: 1" :tags="selTags.tags"
+          <tag-list style="flex-grow: 1" :tags="selTags"
                     editable :nodrag="selected.length > 1"
                     v-on:sorted="onTagsChange"
-                    v-on:delete="x => onDeleteTags(selTags, x)"
+                    v-on:delete="e => onDeleteTags(selectedDataset(), e)"
                     v-on:filter="onAddTagFilter"/>
           <tag-editor style="flex-shrink: 0"
                       v-model:editAllTags="editAllTags"
@@ -230,9 +217,9 @@ invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.
                       v-on:updateTags="onInsertTags"/>
         </splitter-panel>
         <splitter-panel class="column-flex">
-          <tag-list style="flex-grow: 1" :tags="allTags.tags"
+          <tag-list style="flex-grow: 1" :tags="allTags"
                     :editable="editAllTags" nodrag
-                    v-on:delete="e => onDeleteTags(allTags, e)"
+                    v-on:delete="e => onDeleteTags(dataset, e)"
                     v-on:active="onInsertTags"
                     v-on:filter="onAddTagFilter"/>
         </splitter-panel>
