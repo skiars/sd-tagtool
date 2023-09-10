@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import {ref, shallowRef, watch} from 'vue'
+import {ref, shallowRef, watch, onUnmounted} from 'vue'
 import draggable from 'vuedraggable';
 import Tag from './Tag.vue'
 import ContextMenu from 'primevue/contextmenu'
-import * as state from "../lib/state";
+import Toast from 'primevue/toast'
+import { useToast } from 'primevue/usetoast'
+import * as state from '../lib/state'
 
 const props = defineProps<{
   tags: string[]
@@ -13,9 +15,11 @@ const props = defineProps<{
 
 const tags = ref<string[]>([])
 const contentTag = ref<string>('')
+const selectTags = ref<Set<number>>(new Set)
 const menu = shallowRef()
-
-watch(() => props.tags, x => tags.value = x)
+let pressCtrl = false, pressShift = false
+let selected = -1
+const toast = useToast();
 
 const emit = defineEmits<{
   (e: 'sorted', value: string[]): void
@@ -34,7 +38,14 @@ const contentMenu = ref([
   {
     label: 'Add filter',
     command() {
-      emit('filter', [contentTag.value])
+      emit('filter', contentTags())
+    }
+  },
+  {
+    label: 'Copy tag(s)',
+    command() {
+      navigator.clipboard.writeText(contentTagsText())
+      toast.add({ severity: 'success', detail: 'Tags has been copied.', life: 500 })
     }
   },
   {
@@ -49,6 +60,11 @@ const contentMenu = ref([
     }
   }
 ])
+
+watch(() => props.tags, x => {
+  tags.value = x
+  resetSelect()
+})
 
 function setupPalette(): object[] {
   return paletteColors.map(c => ({
@@ -72,10 +88,74 @@ function tagStyle(tag: string): {} | undefined {
   return s
 }
 
-function onRightClick(label: string, event: UIEvent) {
-  contentTag.value = label
+function contentTags(): string[] {
+  if (selectTags.value.size)
+    return Array.from(selectTags.value.keys()).sort().map(x => tags.value[x])
+  return [contentTag.value]
+}
+
+function contentTagsText(): string {
+  return contentTags().join(',')
+}
+
+function resetSelect() {
+  selectTags.value.clear()
+  selected = -1
+}
+
+function onClick(index: number) {
+  if (pressCtrl) {
+    selected = index
+    if (selectTags.value.has(index))
+      selectTags.value.delete(index)
+    else
+      selectTags.value.add(index)
+  } else if (pressShift && selected >= 0) {
+    let a = Math.min(selected, index)
+    let b = Math.max(selected, index)
+    selectTags.value.clear()
+    for (; a <= b; a++)
+      selectTags.value.add(a)
+  } else {
+    selected = index
+    selectTags.value.clear()
+    selectTags.value.add(index)
+  }
+}
+
+function onRightClick(index: number, event: UIEvent) {
+  if (!selectTags.value.has(index))
+    resetSelect()
+  contentTag.value = tags.value[index]
   menu.value.show(event)
 }
+
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key == 'Control')
+    pressCtrl = true
+  if (event.key == 'Shift')
+    pressShift = true
+}
+
+function onKeyUp(event: KeyboardEvent) {
+  if (event.key == 'Control')
+    pressCtrl = false
+  if (event.key == 'Shift')
+    pressShift = false
+}
+
+function onFocusOut() {
+  pressCtrl = pressShift = false
+}
+
+window.addEventListener("keydown", onKeyDown)
+window.addEventListener("keyup", onKeyUp)
+window.addEventListener('focusout', onFocusOut)
+onUnmounted(() => {
+  window.removeEventListener("keydown", onKeyDown)
+  window.removeEventListener("keyup", onKeyUp)
+  window.removeEventListener('focusout', onFocusOut)
+})
 </script>
 
 <template>
@@ -85,16 +165,20 @@ function onRightClick(label: string, event: UIEvent) {
              :item-key="(x: string) => x"
              ghost-class="ghost"
              :animation="200"
-             v-on:end="emit('sorted', tags)">
-    <template #item="{ element }">
+             v-on:end="emit('sorted', tags)"
+             v-on:click.self="selectTags.clear()">
+    <template #item="{ element, index }">
       <Tag class="list-group-item tag-item" :style="tagStyle(element)"
            :label="element" :removable="props.editable"
+           :select="selectTags.has(index)"
            v-on:delete="emit('delete', [element])"
            v-on:dblclick="emit('active', [element])"
-           v-on:contextmenu="e => onRightClick(element, e)"/>
+           v-on:click="onClick(index)"
+           v-on:contextmenu="e => onRightClick(index, e)"/>
     </template>
     <template #footer>
       <context-menu ref="menu" :model="contentMenu"/>
+      <Toast />
     </template>
   </draggable>
 </template>

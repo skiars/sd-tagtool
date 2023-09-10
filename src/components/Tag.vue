@@ -6,7 +6,8 @@ import * as state from '../lib/state'
 
 const props = defineProps<{
   label: string,
-  removable?: true | boolean
+  removable?: true | boolean,
+  select?: true | boolean
 }>()
 
 const emit = defineEmits<{
@@ -35,7 +36,7 @@ async function translateTag() {
 </script>
 
 <template>
-  <div class="tag-frame">
+  <div :class="['tag-frame', select ? 'tag-select' : undefined]">
     <span class="tag-label">
       <span>{{ props.label }}</span>
       <span class="translate-label" v-if="tr">&nbsp;{{ trLabel }} </span>
@@ -66,6 +67,7 @@ async function translateTag() {
   align-items: center;
   color: var(--primary-color-text);
   background-color: var(--primary-400);
+  border: 0.1em solid transparent;
   border-radius: 0.5em;
   cursor: default;
   -webkit-user-select: none; /* Safari */
@@ -74,7 +76,12 @@ async function translateTag() {
 }
 
 .tag-label {
-  margin: 0.2em 0.1em 0.2em 0.1em;
+  margin: 0.1em 0.1em;
+}
+
+.tag-select {
+  border-color: #57375d;
+  filter: brightness(85%);
 }
 
 .translate-label {

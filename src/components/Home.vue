@@ -99,7 +99,6 @@ function onInsertTags(tags: string[]) {
 }
 
 function onReplaceTags({from, to}: { from: string[], to: string[] }) {
-  console.log(from, to)
   const ds = editAllTags.value ? dataset.value : selectedDataset()
   history.edit(replaceTags(ds, from, to))
 }

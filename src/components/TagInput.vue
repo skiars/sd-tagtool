@@ -86,13 +86,19 @@ async function search(event: AutoCompleteCompleteEvent) {
 function readableNumber(x: number): string {
   return x < 1000 ? x.toString() : (x * 1e-3).toFixed(0) + 'k'
 }
+
+function onKeyUp(event: KeyboardEvent): void {
+  if (event.key == 'Backspace')
+    emit('update:modelValue', tags.value.map(optionLabel))
+}
 </script>
 
 <template>
   <auto-complete style="flex: 1" multiple v-model="tags" :suggestions="suggestions"
                  :option-label="optionLabel" v-on:complete="search"
+                 :placeholder="!tags.length ? props.placeholder : ''"
                  v-on:change="emit('update:modelValue', tags.map(optionLabel))"
-                 :placeholder="!tags.length ? props.placeholder : ''">
+                 v-on:keyup="onKeyUp">
     <template #option="{option}: {option: TagHint}">
       <span>{{ option.tag }}</span>
       <span v-if="option.suggest">&nbsp;→ {{ option.suggest }}</span>
