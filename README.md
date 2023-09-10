@@ -37,11 +37,29 @@ You can try the basic usage by yourself, only a few details are added here.
 
 When you select a picture, drag the tag of the image to sort it, or click the `×` icon on the tag to delete. But the tags cannot be sorted when multiple images are selected.
 
-You can also turn on the *edit all tags* switch, which will delete tags from the entire dataset (all tags are displayed at the bottom of the window). For example, removing "1girl" from all tags will cause the "1girl" tag to be removed from all images.
+You can also turn on the *edit all tags* switch, which will:
+- Delete tags in the entire data set (all tags are displayed at the bottom of the window). For example, deleting "1girl" in all tags will cause the "1girl" tag in all images to be deleted;
+- When inserting or replacing tags, all images in the dataset will be operated, not just the selected images.
+
+### Tag highlight
+
+You can choose a highlight color for the tag in *Pick color* of the tag's context menu (click the right mouse button), so that you can find it quickly. When you don't need the tag highlighting anymore, you can clear it by *Clear picked color* in the context menu.
+
+### Select tags
+
+Click a tag with the left mouse button in the tag list to select it. Hold down the `Ctrl` key to select multiple tags, and hold down `Shift` to select multiple tags by range. The selected tags can be copied or added to the filter through the content menu.
+
+### Tags filter
+
+Enter the tags to be filtered in the tags filter input at the top, and then click the *Filter* button to filter the dataset. Two filtering modes can be selected via the *exclude* checkbox:
+- **Include mode**: when the image has all the tags in the filter, it will be displayed in the filtered list;
+- **Exclude mode**: Images that do not have all the tags in the filter will be shown in the filtered list.
+
+After editing the dataset, you need to click the *Filter* button again to update the filtered dataset. You can enter tags manually, or right-click in the tags list and add selected tags to the filter via the *Add filter* menu.
 
 ### Insert tags
 
-Enter a tag in the *add tag* input box and click the *Insert* button to insert a new tag into the selected dataset (you can select multiple images). As you can see *add tag* input box can fill in multiple tags.
+Enter a tag in the tags input box and click the *Insert* button to insert a new tag into the selected dataset (you can select multiple images). As you can see tags input box can fill in multiple tags.
 
 The insertion position is specified by the *position* box. These modes are currently supported:
 - **auto**: Insert tags to tail if there is no label to be inserted in the image, otherwise do nothing;
@@ -52,23 +70,28 @@ The insertion position can exceed the actual number of tags in the image, and th
 
 Double-clicking a tag directly in the list of all labels will also insert it into the tag set of the selected images. The insertion position at this time is also determined by the *position*.
 
+### Replace tags
+
+Click the `>` button on the left side of the tag editing bar to open the tag replacement bar. Enter the tags for replacement in the *replace with* input box, and click the *Replace* button to replace the tags. Tag replacement is one-to-one correspondence, for example:
+- Replace `a,b,c` with `d,e,f` means: `a` is replaced by `d`, `b` is replaced by `e`, `c` is replaced by `f`;
+- Replace `a,b,c` with `d,e` means: `a` is replaced with `d`, `b` is replaced with `e`, `f` is deleted;
+- Replace `a,b` with `d,e,f` means: `a` replaced with `d` and `b` replaced with `e,f`.
+
+The specific replacement process for each tag is:
+- The replaced tag will appear in the position of the original tag;
+- If the replaced tag already exists in the image tag list, subsequent duplicates will be removed;
+- If the image does not have the original tag, the corresponding replacement will not be performed;
+- You can also delete tags by replacing them with nothing.
+
 ### Undo / Redo
 
 Click *Undo* and *Redo* in the *Edit* menu to undo and redo, and you can also use the shortcut keys to do it.
 
 There is no step limit for undo and redo, but there is currently no reasonable interactive feedback (this will lead to you may not know what happened). Also, the undo history is cleared after opening a new directory.
 
-### Tags filter
+### Translation
 
-Enter the tags to be filtered in the tags filter input at the top, and then click the *Filter* button to filter the dataset. Two filtering modes can be selected via the *exclude* checkbox:
-- **Include mode**: when the image has all the tags in the filter, it will be displayed in the filtered list;
-- **Exclude mode**: Images that do not have all the tags in the filter will be shown in the filtered list.
-
-After editing the dataset, you need to click the *Filter* button again to update the filtered dataset. You can enter tags manually, or right-click in the tags list and add specific tags to the filter via the *Add filter* menu.
-
-### Tag highlight
-
-You can choose a highlight color for the tag in *Pick color* of the tag's context menu (click the right mouse button), so that you can find it quickly. When you don't need the tag highlighting anymore, you can clear it by *Clear picked color* in the context menu.
+Click the *Translate tags* menu of *View* to enable automatic translation.
 
 ## Warning
 
