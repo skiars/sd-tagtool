@@ -79,22 +79,22 @@ async function quitApp() {
 
 appWindow.listen('tauri://close-requested', quitApp)
 
-function onTagsChange(x: string[]) {
-  if (selected.value.length == 1)
-    history.edit([{index: selected.value[0], tags: x}])
-}
-
 function selectedDataset(): TagData[] {
   const sel: Set<number> = new Set(selected.value)
   return dataset.value.filter(x => sel.has(x.key))
 }
 
-function onDeleteTags(d: TagData[], tags: string[]) {
-  history.edit(deleteTags(d, tags))
-}
-
 function editableDataset(): TagData[] {
   return editAllTags.value ? dataset.value : selectedDataset()
+}
+
+function onTagsChange(x: string[]) {
+  if (selected.value.length == 1)
+    history.edit([{index: selected.value[0], tags: x}])
+}
+
+function onDeleteTags(d: TagData[], tags: string[]) {
+  history.edit(deleteTags(d, tags))
 }
 
 function onInsertTags({tags, position}: { tags: string[], position?: number }) {
@@ -111,7 +111,7 @@ function onAddTagFilter(e: string[]) {
 }
 
 function onFilterApply(e: { tags: string[], mode: FilterMode }) {
-  if (e.tags) {
+  if (e.tags.length) {
     function includeAny(x: TagData): boolean {
       const s = new Set(x.tags)
       return e.tags.some(a => s.has(a))
