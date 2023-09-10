@@ -24,7 +24,6 @@ import {appWindow} from '@tauri-apps/api/window'
 import {confirm, message} from '@tauri-apps/api/dialog'
 
 let history: EditorHistory = new EditorHistory
-let tagInsPos: number | undefined = undefined
 let workDir: string = ''
 let editState: Array<any> | undefined = undefined
 const dataset = ref<TagData[]>([])
@@ -94,13 +93,16 @@ function onDeleteTags(d: TagData[], tags: string[]) {
   history.edit(deleteTags(d, tags))
 }
 
-function onInsertTags(tags: string[]) {
-  history.edit(insertTags(selectedDataset(), tags, tagInsPos))
+function editableDataset(): TagData[] {
+  return editAllTags.value ? dataset.value : selectedDataset()
+}
+
+function onInsertTags({tags, position}: { tags: string[], position?: number }) {
+  history.edit(insertTags(editableDataset(), tags, position))
 }
 
 function onReplaceTags({from, to}: { from: string[], to: string[] }) {
-  const ds = editAllTags.value ? dataset.value : selectedDataset()
-  history.edit(replaceTags(ds, from, to))
+  history.edit(replaceTags(editableDataset(), from, to))
 }
 
 function onAddTagFilter(e: string[]) {
@@ -218,15 +220,14 @@ invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.
                     v-on:filter="onAddTagFilter"/>
           <tag-editor style="flex-shrink: 0"
                       v-model:editAllTags="editAllTags"
-                      v-on:updatePosition="x => tagInsPos = x"
-                      v-on:updateTags="onInsertTags"
+                      v-on:insertTags="onInsertTags"
                       v-on:replaceTags="onReplaceTags"/>
         </splitter-panel>
         <splitter-panel class="column-flex">
           <tag-list style="flex-grow: 1" :tags="allTags"
                     :editable="editAllTags" nodrag
                     v-on:delete="e => onDeleteTags(dataset, e)"
-                    v-on:active="onInsertTags"
+                    v-on:active="e => onInsertTags({tags: e})"
                     v-on:filter="onAddTagFilter"/>
         </splitter-panel>
       </splitter>

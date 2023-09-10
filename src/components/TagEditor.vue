@@ -10,13 +10,12 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'updateTags', value: string[]): void
-  (e: 'updatePosition', value: number | undefined): void
+  (e: 'insertTags', value: { tags: string[], position?: number }): void
   (e: 'update:editAllTags', value: boolean): void,
-  (e: 'replaceTags', value: {from: string[], to: string[]}): void
+  (e: 'replaceTags', value: { from: string[], to: string[] }): void
 }>()
 
-const position = ref<number>()
+const position = ref<number | undefined>()
 const tags = ref<string[]>([])
 const replaceTags = ref<string[]>([])
 const more = ref<boolean>()
@@ -39,9 +38,8 @@ const editAllTags = computed<boolean>({
       <tag-input v-model="tags" placeholder="Separate tags with ',' or press Enter"/>
       <span>position</span>
       <input-number v-model="position" placeholder="auto"
-                    v-on:update:modelValue="emit('updatePosition', $event)"
                     :inputStyle="{ padding: '0.25em', width: '4em' }"/>
-      <Button class="fixed" rounded v-on:click="emit('updateTags', tags)">
+      <Button class="fixed" rounded v-on:click="emit('insertTags', {tags, position})">
         Insert
       </Button>
       <span>edit all tags</span>
