@@ -1,4 +1,9 @@
-import {TagData} from './types'
+export interface TagData {
+  key: number,
+  name: string,
+  url: string,
+  tags: string[]
+}
 
 interface EditAction {
   index: number,

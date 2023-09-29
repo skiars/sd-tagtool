@@ -3,6 +3,7 @@ import {watch} from 'vue'
 import {useRouter} from 'vue-router'
 import Panel from 'primevue/panel'
 import Dropdown from 'primevue/dropdown'
+import Slider from 'primevue/slider'
 import {invoke} from '@tauri-apps/api/tauri'
 import {config} from '../lib/state'
 
@@ -32,9 +33,21 @@ watch(config, async value => {
     </div>
     <div class="settings-panel">
       <panel header="Translate" toggleable>
-        Target language
-        <dropdown v-model="config.translate.language" :options="languages"
-                  option-label="name" option-value="code"/>
+        <div class="panel">
+          Target language
+          <dropdown v-model="config.translate.language" :options="languages"
+                    option-label="name" option-value="code"/>
+        </div>
+      </panel>
+      <panel header="Image List" toggleable>
+        <div class="panel">
+          Image width
+          <div style="display: flex; align-items: center; gap: 1em">
+            <label>{{config.imageList.width}} px</label>
+            <Slider v-model="config.imageList.width" style="width: 14rem"
+                    :min="50" :max="300" step="10" />
+          </div>
+        </div>
       </panel>
     </div>
   </div>
@@ -77,5 +90,10 @@ i {
 i:hover {
   cursor: pointer;
   background-color: var(--surface-300);
+}
+
+.panel {
+  display: flex;
+  justify-content: space-between;
 }
 </style>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import {onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
+import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
 import {listen} from '@tauri-apps/api/event'
-import {TagData} from '../lib/types'
+import {TagData} from '../lib/utils'
+import {config} from '../lib/state'
 
 const props = defineProps<{
   dataset: TagData[]
@@ -34,6 +35,11 @@ watch(() => props.dataset, x => {
 listen('preview', event => {
   enablePreview = event.payload as boolean
 })
+
+const itemStyle = computed(() => ({
+  maxWidth: `${config.value.imageList.width * 1.5}px`,
+  flex: `1 1 ${config.value.imageList.width}px`
+}))
 
 function onKeyDown(event: KeyboardEvent) {
   if (event.key == 'Control')
@@ -117,8 +123,8 @@ function updateOverlayPanelSize() {
   <div ref="panel" class="image-list"
        v-on:mouseenter="onMouseEnter" v-on:mouseleave="onMouseLeave"
        :tabindex="-1" v-on:keydown="onKeyDown" v-on:keyup="onKeyUp">
-    <div v-for="(data, index) in props.dataset" class="item"
-         :class="selectedSet.has(index) ? 'selected' : undefined"
+    <div v-for="(data, index) in props.dataset" :style="itemStyle"
+         :class="['item', selectedSet.has(index) ? 'selected' : undefined]"
          v-on:mouseover="previewSrc = data.url" v-on:click="onClick(index)">
       <img class="image-thumb"
            :src="data.url" :alt="data.url"/>
@@ -127,7 +133,8 @@ function updateOverlayPanelSize() {
   </div>
   <Transition>
     <div v-show="previewSrc && preview" ref="overlay" class="overlay-panel">
-      <img v-if="previewSrc" :src="previewSrc" class="image-preview" alt="Preview"/>
+      <img v-if="previewSrc" class="image-preview" alt="Preview"
+           :src="previewSrc" :srcset="`${previewSrc} 2x`"/>
     </div>
   </Transition>
 </template>
@@ -139,8 +146,9 @@ function updateOverlayPanelSize() {
   height: 100%;
   display: flex;
   flex-wrap: wrap;
-  overflow-y: auto;
+  align-content: flex-start;
   align-items: stretch;
+  overflow-y: auto;
   clip-path: inset(4px 0 4px 4px round 4px);
   padding: 2px 0 2px 2px;
 }
@@ -150,8 +158,6 @@ function updateOverlayPanelSize() {
 }
 
 .item {
-  max-width: 150px;
-  flex: 1 1 100px;
   margin: 2px;
   padding: 2px;
   border: 2px solid transparent;
@@ -180,8 +186,8 @@ function updateOverlayPanelSize() {
   text-align: center;
   max-width: 100%;
   max-height: 100%;
-  padding: 16px;
-  background-color: #8883;
+  padding: 8px;
+  background-color: #ddd3;
   backdrop-filter: blur(10px);
   border-radius: 8px;
 }

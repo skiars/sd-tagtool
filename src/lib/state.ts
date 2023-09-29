@@ -8,6 +8,9 @@ export const tagPalette = ref<Map<string, string>>(new Map)
 const defaultConfig = {
   translate: {
     language: 'zh-CN'
+  },
+  imageList: {
+    width: 100
   }
 }
 
