@@ -1,68 +1,209 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
+import {onMounted, onUnmounted, ref, shallowRef, watch} from 'vue'
+import {listen} from '@tauri-apps/api/event'
 import {TagData} from '../lib/types'
 
 const props = defineProps<{
   dataset: TagData[]
 }>()
 
-const selected = ref<TagData[]>([])
+const preview = ref(false)
+const previewSrc = ref<string>()
+const panel = shallowRef<HTMLElement>()
+const overlay = shallowRef<HTMLElement>()
+let enablePreview = false
+
+const selectedSet = ref<Set<number>>(new Set)
+let pressCtrl = false, pressShift = false
+let selected = -1
 
 const emit = defineEmits<{
   (e: 'select', value: { index: number }[]): void
 }>()
 
-watch(selected, value => {
-  emit('select', value.map(x => ({index: x.key})))
+watch(selectedSet, value => {
+  emit('select', Array.from(value.keys()).sort()
+    .map(x => ({index: props.dataset[x].key})))
+}, {deep: true})
+
+watch(() => props.dataset, x => {
+  selectedSet.value.clear()
+  selected = -1
 })
+
+listen('preview', event => {
+  enablePreview = event.payload as boolean
+})
+
+function onKeyDown(event: KeyboardEvent) {
+  if (event.key == 'Control')
+    pressCtrl = true
+  if (event.key == 'Shift')
+    pressShift = true
+}
+
+function onKeyUp(event: KeyboardEvent) {
+  if (event.key == 'Control')
+    pressCtrl = false
+  if (event.key == 'Shift')
+    pressShift = false
+}
+
+let trigger: any = null
+
+function onMouseEnter() {
+  if (enablePreview) {
+    trigger = setTimeout(() => {
+      preview.value = true
+      trigger = null
+    }, 250)
+  }
+}
+
+function onMouseLeave() {
+  clearTimeout(trigger)
+  trigger = null
+  preview.value = false
+}
+
+function onClick(index: number) {
+  if (pressCtrl) {
+    selected = index
+    if (selectedSet.value.has(index))
+      selectedSet.value.delete(index)
+    else
+      selectedSet.value.add(index)
+  } else if (pressShift && selected >= 0) {
+    let a = Math.min(selected, index)
+    let b = Math.max(selected, index)
+    selectedSet.value.clear()
+    for (; a <= b; a++)
+      selectedSet.value.add(a)
+  } else {
+    selected = index
+    selectedSet.value.clear()
+    selectedSet.value.add(index)
+  }
+}
+
+const resizeObserver = new ResizeObserver((event) => {
+  updateOverlayPanelSize()
+})
+
+onMounted(() => {
+  resizeObserver.observe(panel.value as HTMLElement)
+  updateOverlayPanelSize()
+})
+
+onUnmounted(() => {
+  resizeObserver.unobserve(panel.value as HTMLElement)
+})
+
+function updateOverlayPanelSize() {
+  const el = overlay.value as HTMLElement
+  const rootRect = document.documentElement.getBoundingClientRect()
+  const rect = (panel.value as HTMLElement).getBoundingClientRect()
+  const left = rect.right
+  const width = rootRect.width - left - 16
+  const height = rootRect.height - 20
+  el.style.setProperty("top", `${0}px`)
+  el.style.setProperty("left", `${left}px`)
+  el.style.setProperty("width", `${width}px`)
+  el.style.setProperty("height", `${height}px`)
+}
 </script>
 
 <template>
-  <data-table :value="props.dataset"
-              v-model:selection="selected" selection-mode="multiple" class="image-list">
-    <template #empty>
-      <div class="empty-list">There are no images to show.</div>
-    </template>
-    <column field="url">
-      <template #body="{ data }">
-        <div>
-          <img class="image" :src="data.url" :alt="data.url"/>
-        </div>
-      </template>
-    </column>
-  </data-table>
+  <div ref="panel" class="image-list"
+       v-on:mouseenter="onMouseEnter" v-on:mouseleave="onMouseLeave"
+       :tabindex="-1" v-on:keydown="onKeyDown" v-on:keyup="onKeyUp">
+    <div v-for="(data, index) in props.dataset" class="item"
+         :class="selectedSet.has(index) ? 'selected' : undefined"
+         v-on:mouseover="previewSrc = data.url" v-on:click="onClick(index)">
+      <img class="image-thumb"
+           :src="data.url" :alt="data.url"/>
+    </div>
+    <div v-if="!props.dataset.length" class="empty-list">There are no images to show.</div>
+  </div>
+  <Transition>
+    <div v-show="previewSrc && preview" ref="overlay" class="overlay-panel">
+      <img v-if="previewSrc" :src="previewSrc" class="image-preview" alt="Preview"/>
+    </div>
+  </Transition>
 </template>
 
 <style scoped>
+.image-list {
+  border: 10px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  align-items: stretch;
+  clip-path: inset(4px 0 4px 4px round 4px);
+  padding: 2px 0 2px 2px;
+}
+
 .empty-list {
   text-align: center;
 }
 
-.image-list {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-
 .item {
-  height: 20%;
-  margin: 4px;
-  padding: 4px;
-  border-radius: 5px;
+  max-width: 150px;
+  flex: 1 1 100px;
+  margin: 2px;
+  padding: 2px;
+  border: 2px solid transparent;
+  border-radius: 4px;
   background-color: var(--surface-card);
 }
 
-.image {
-  width: auto;
-  height: 15vh;
+.item:hover {
+  border: 2px solid var(--primary-400);
+}
+
+.selected {
+  background-color: var(--blue-200);
+}
+
+.image-thumb {
   width: 100%;
   height: 100%;
+  margin: auto;
   object-fit: scale-down;
   text-align: center;
+}
+
+.image-preview {
+  object-fit: scale-down;
+  text-align: center;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 16px;
+  background-color: #8883;
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+}
+
+.overlay-panel {
+  position: absolute;
+  z-index: 1000;
+  margin: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>
 

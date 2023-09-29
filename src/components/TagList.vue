@@ -143,57 +143,47 @@ function onKeyUp(event: KeyboardEvent) {
   if (event.key == 'Shift')
     pressShift = false
 }
-
-function onFocusOut() {
-  pressCtrl = pressShift = false
-}
-
-window.addEventListener("keydown", onKeyDown)
-window.addEventListener("keyup", onKeyUp)
-window.addEventListener('focusout', onFocusOut)
-onUnmounted(() => {
-  window.removeEventListener("keydown", onKeyDown)
-  window.removeEventListener("keyup", onKeyUp)
-  window.removeEventListener('focusout', onFocusOut)
-})
 </script>
 
 <template>
-  <draggable class="tag-list"
-             v-model="tags"
-             :disabled="props.nodrag"
-             :item-key="(x: string) => x"
-             ghost-class="ghost"
-             :animation="200"
-             v-on:end="emit('sorted', tags)"
-             v-on:click.self="selectTags.clear()">
-    <template #item="{ element, index }">
-      <Tag class="list-group-item tag-item" :style="tagStyle(element)"
-           :label="element" :removable="props.editable"
-           :select="selectTags.has(index)"
-           v-on:delete="emit('delete', [element])"
-           v-on:dblclick="emit('active', [element])"
-           v-on:click="onClick(index)"
-           v-on:contextmenu="e => onRightClick(index, e)"/>
-    </template>
-    <template #footer>
-      <context-menu ref="menu" :model="contentMenu"/>
-      <Toast />
-    </template>
-  </draggable>
+  <div class="frame" :tabindex="-1" v-on:keydown="onKeyDown" v-on:keyup="onKeyUp">
+    <draggable class="tag-list"
+               v-model="tags"
+               :disabled="props.nodrag"
+               :item-key="(x: string) => x"
+               ghost-class="ghost"
+               :animation="200"
+               v-on:end="emit('sorted', tags)"
+               v-on:click.self="selectTags.clear()">
+      <template #item="{ element, index }">
+        <Tag class="list-group-item tag-item" :style="tagStyle(element)"
+             :label="element" :removable="props.editable"
+             :select="selectTags.has(index)"
+             v-on:delete="emit('delete', [element])"
+             v-on:dblclick="emit('active', [element])"
+             v-on:click="onClick(index)"
+             v-on:contextmenu="e => onRightClick(index, e)"/>
+      </template>
+    </draggable>
+    <context-menu ref="menu" :model="contentMenu"/>
+    <Toast />
+  </div>
 </template>
 
 <style scoped>
-.tag-list {
-  min-height: 5em;
-  display: flex;
-  flex-wrap: wrap;
+.frame {
+  min-height: 4em;
   overflow-y: auto;
-  align-items: baseline;
-  align-content: start;
   border: 1px solid var(--gray-300);
   border-radius: var(--border-radius);
   background-color: var(--surface-card);
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-content: start;
 }
 
 .tag-item {

@@ -15,6 +15,7 @@ use tagutils::{QueryTag, TagData, TagHint, TagHintDB};
 #[derive(Default)]
 struct CmdState {
     translate_enabled: Mutex<bool>,
+    preview_enabled: Mutex<bool>,
     translate_cache: TranslateCache,
     tags_db: Mutex<TagHintDB>,
 }
@@ -125,8 +126,9 @@ fn window_menu() -> Menu {
         .add_item(undo).add_item(redo));
 
     let trans = CustomMenuItem::new("translate".to_string(), "Translate tags");
+    let preview = CustomMenuItem::new("preview".to_string(), "Image Preview");
     let view = Submenu::new("View", Menu::new()
-        .add_item(trans));
+        .add_item(trans).add_item(preview));
 
     Menu::new().add_submenu(file).add_submenu(edit).add_submenu(view)
 }
@@ -146,6 +148,14 @@ fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
             let menu = event.window().menu_handle().get_item("translate");
             menu.set_selected(tr).unwrap();
             event.window().emit("translate", tr).unwrap();
+        }
+        "preview" => {
+            let state: State<CmdState> = event.window().state();
+            let s = !*state.preview_enabled.lock().unwrap();
+            *state.preview_enabled.lock().unwrap() = s;
+            let menu = event.window().menu_handle().get_item("preview");
+            menu.set_selected(s).unwrap();
+            event.window().emit("preview", s).unwrap();
         }
         _ => {}
     }
