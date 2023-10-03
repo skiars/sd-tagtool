@@ -162,7 +162,7 @@ function onKeyUp(event: KeyboardEvent) {
              v-on:delete="emit('delete', [element])"
              v-on:dblclick="emit('active', [element])"
              v-on:click="onClick(index)"
-             v-on:contextmenu="e => onRightClick(index, e)"/>
+             v-on:contextmenu="(e: UIEvent) => onRightClick(index, e)"/>
       </template>
     </draggable>
     <context-menu ref="menu" :model="contentMenu"/>

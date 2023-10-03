@@ -45,7 +45,7 @@ watch(config, async value => {
           <div style="display: flex; align-items: center; gap: 1em">
             <label>{{config.imageList.width}} px</label>
             <Slider v-model="config.imageList.width" style="width: 14rem"
-                    :min="50" :max="300" step="10" />
+                    :min="50" :max="300" :step="10" />
           </div>
         </div>
       </panel>
