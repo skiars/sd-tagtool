@@ -93,9 +93,9 @@ There is no step limit for undo and redo, but there is currently no reasonable i
 
 Click the *Translate tags* menu of *View* to enable automatic translation.
 
-## Warning
+### Delete isolated txt files
 
-Don't press Ctrl + R!!! This will refresh the page and lose all data.
+After delete the image files in the dataset folder, you can delete the remaining *\*.txt* files using *Delete isolated txt* in the *Tools* menu. The command will pop up a dialog to confirm the files that need to be deleted.
 
 ## Development
 
