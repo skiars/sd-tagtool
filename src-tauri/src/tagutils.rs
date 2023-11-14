@@ -3,7 +3,8 @@ use std::fs;
 use std::fs::{File};
 use std::path::Path;
 use std::path::PathBuf;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::ffi::OsStr;
 use simsearch::{SimSearch, SearchOptions};
 
 pub enum TagHint {
@@ -33,9 +34,14 @@ impl Default for TagHintDB {
     fn default() -> TagHintDB { TagHintDB::new() }
 }
 
+fn is_image_file(ext: &OsStr) -> bool {
+    let ext = ext.to_ascii_lowercase();
+    ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "webp"
+}
+
 pub fn read_tags(path: PathBuf) -> Option<TagData> {
     path.extension().and_then(|ext| {
-        if ext == "png" || ext == "jpg" {
+        if is_image_file(ext) {
             path.file_name().map(|e| {
                 let name = e.to_os_string().into_string().unwrap();
                 TagData {
@@ -47,6 +53,29 @@ pub fn read_tags(path: PathBuf) -> Option<TagData> {
             None
         }
     })
+}
+
+pub fn listdir_images(path: &str) -> Vec<PathBuf> {
+    fs::read_dir(path).unwrap()
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter_map(|e|
+            e.clone().extension().and_then(|ext| {
+                is_image_file(ext).then_some(e)
+            })
+        )
+        .collect::<Vec<_>>()
+}
+
+fn is_image_exist(images: &HashSet<String>, path: PathBuf) -> bool {
+    path.file_stem().and_then(|e|
+        images.contains(e.to_str().unwrap()).then_some(())
+    ).is_some()
+}
+
+pub fn is_isolated_txt(images: &HashSet<String>, path: PathBuf) -> bool {
+    path.clone().extension().and_then(|ext|
+        (ext == "txt" && !is_image_exist(images, path)).then_some(())
+    ).is_some()
 }
 
 fn get_tags(mut path: PathBuf) -> Vec<String> {

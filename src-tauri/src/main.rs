@@ -7,6 +7,7 @@ mod tagutils;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::collections::HashSet;
 use tauri::{AppHandle, CustomMenuItem, Manager, Menu,
             MenuItem, Runtime, State, Submenu, WindowMenuEvent};
 use translate::{TranslateCache, translate};
@@ -26,6 +27,25 @@ fn listdir(path: &str) -> Vec<TagData> {
         .unwrap()
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter_map(tagutils::read_tags)
+        .collect::<Vec<_>>()
+}
+
+#[tauri::command]
+fn list_isolated_txt(path: &str) -> Vec<String> {
+    let images: HashSet<String> = HashSet::from_iter(
+        tagutils::listdir_images(path).iter()
+            .map(|path|
+                path.file_stem().unwrap().to_str().unwrap().to_string()
+            )
+    );
+    fs::read_dir(path)
+        .unwrap()
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter_map(|path| {
+            tagutils::is_isolated_txt(&images, path.clone()).then_some(
+                path.file_name().unwrap().to_str().unwrap().to_string()
+            )
+        })
         .collect::<Vec<_>>()
 }
 
@@ -130,7 +150,10 @@ fn window_menu() -> Menu {
     let view = Submenu::new("View", Menu::new()
         .add_item(trans).add_item(preview));
 
-    Menu::new().add_submenu(file).add_submenu(edit).add_submenu(view)
+    let delete_txt = CustomMenuItem::new("delete_txt".to_string(), "Delete isolated txt");
+    let tools = Submenu::new("Tools", Menu::new().add_item(delete_txt));
+
+    Menu::new().add_submenu(file).add_submenu(edit).add_submenu(view).add_submenu(tools)
 }
 
 fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
@@ -141,6 +164,7 @@ fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
         "undo" => { event.window().emit("menu", "undo").unwrap(); }
         "redo" => { event.window().emit("menu", "redo").unwrap(); }
         "settings" => { event.window().emit("menu", "settings").unwrap(); }
+        "delete_txt" => { event.window().emit("menu", "delete_txt").unwrap(); }
         "translate" => {
             let state: State<CmdState> = event.window().state();
             let tr = !*state.translate_enabled.lock().unwrap();
@@ -167,7 +191,7 @@ fn main() {
         .manage(CmdState::default())
         .invoke_handler(tauri::generate_handler![
             listdir, save_tags, parse_tags, translate_tag, query_tag, load_tags_db,
-            load_config, save_config, refresh_cache
+            load_config, save_config, refresh_cache, list_isolated_txt
         ])
         .menu(menu)
         .on_menu_event(handle_menu)

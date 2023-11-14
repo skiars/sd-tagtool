@@ -21,6 +21,8 @@ import {platform} from '@tauri-apps/api/os'
 import {exit} from '@tauri-apps/api/process'
 import {appWindow} from '@tauri-apps/api/window'
 import {confirm, message} from '@tauri-apps/api/dialog'
+import DeleteIsolatedTxt from './DeleteIsolatedTxt.vue'
+import {deleteIsolatedTxt} from './DeleteIsolatedTxt'
 
 let history: EditorHistory = new EditorHistory
 let workDir: string = ''
@@ -171,6 +173,9 @@ async function menuAction(menu: string) {
     case 'settings':
       router.push('/settings').then()
       break
+    case 'delete_txt':
+      await deleteIsolatedTxt(workDir)
+      break;
   }
 }
 
@@ -232,6 +237,7 @@ invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.
       </splitter>
     </splitter-panel>
   </splitter>
+  <delete-isolated-txt/>
 </template>
 
 <style scoped>
