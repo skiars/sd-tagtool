@@ -21,6 +21,7 @@ import {platform} from '@tauri-apps/api/os'
 import {exit} from '@tauri-apps/api/process'
 import {appWindow} from '@tauri-apps/api/window'
 import {confirm, message} from '@tauri-apps/api/dialog'
+import {getVersion} from '@tauri-apps/api/app'
 import DeleteIsolatedTxt from './DeleteIsolatedTxt.vue'
 import {deleteIsolatedTxt} from './DeleteIsolatedTxt'
 
@@ -68,7 +69,7 @@ async function openFolder(path?: string) {
   selected.value = []
   history = new EditorHistory(dataset.value)
   editState = undefined
-  await appWindow.setTitle(`sd-tagtool - ${path}`)
+  await appWindow.setTitle(`sd-tagtool v${await getVersion()} - ${path}`)
 }
 
 async function quitApp() {

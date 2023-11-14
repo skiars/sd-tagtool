@@ -198,6 +198,12 @@ fn main() {
         ])
         .menu(menu)
         .on_menu_event(handle_menu)
+        .setup(|app| {
+            let main_window = app.get_window("main").unwrap();
+            let title = "sd-tagtool v".to_string() + app.config().package.version.as_ref().unwrap().as_str();
+            main_window.set_title(title.as_str()).unwrap();
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

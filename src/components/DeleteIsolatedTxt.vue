@@ -38,7 +38,7 @@ async function confirmDelete() {
       There are no files to clean up.
     </p>
     <template #footer>
-      <Button v-if="confirmList.length" label="Ok" icon="pi pi-check" v-on:click="confirmDelete" autofocus/>
+      <Button v-if="confirmList.length" label="Ok" icon="pi pi-check" v-on:click="confirmDelete"/>
       <Button label="Cancel" v-on:click="showDialog = false" autofocus/>
     </template>
   </Dialog>
