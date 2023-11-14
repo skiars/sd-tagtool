@@ -161,6 +161,12 @@ async function menuAction(menu: string) {
       if (dataset.value.length)
         await message('All content has been saved!', 'Save')
       break
+    case 'reload':
+      const msg = 'The work has not been saved, are you sure to reload folder?'
+      if (editState == history.state() ||
+        await confirm(msg, {title: 'Confirm reload folder', type: 'warning'}))
+        await openFolder(workDir)
+      break
     case 'quit':
       await quitApp()
       break
@@ -190,6 +196,7 @@ platform().then(name => {
 
       handle('open', 'KeyO')
       handle('save', 'KeyS')
+      handle('reload', 'KeyR')
       handle('undo', 'KeyZ')
       handle('redo', 'KeyZ', true)
     }, false);

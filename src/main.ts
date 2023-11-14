@@ -25,3 +25,4 @@ app.mount("#app")
 
 // disable content menu
 document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('keydown', event => event.preventDefault())

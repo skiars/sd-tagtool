@@ -131,10 +131,12 @@ fn window_menu() -> Menu {
         .accelerator("CmdOrCtrl+O");
     let save = CustomMenuItem::new("save".to_string(), "Save")
         .accelerator("CmdOrCtrl+S");
+    let reload = CustomMenuItem::new("reload".to_string(), "Reload folder")
+        .accelerator("CmdOrCtrl+R");
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
     let settings = CustomMenuItem::new("settings".to_string(), "Settings");
     let file = Submenu::new("File", Menu::new()
-        .add_item(open).add_item(save)
+        .add_item(open).add_item(save).add_item(reload)
         .add_native_item(MenuItem::Separator).add_item(settings)
         .add_native_item(MenuItem::Separator).add_item(quit));
 
@@ -161,6 +163,7 @@ fn handle_menu<R: Runtime>(event: WindowMenuEvent<R>) {
         "quit" => { event.window().emit("menu", "quit").unwrap(); }
         "open" => { event.window().emit("menu", "open").unwrap(); }
         "save" => { event.window().emit("menu", "save").unwrap(); }
+        "reload" => { event.window().emit("menu", "reload").unwrap(); }
         "undo" => { event.window().emit("menu", "undo").unwrap(); }
         "redo" => { event.window().emit("menu", "redo").unwrap(); }
         "settings" => { event.window().emit("menu", "settings").unwrap(); }
