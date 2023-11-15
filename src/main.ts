@@ -25,4 +25,11 @@ app.mount("#app")
 
 // disable content menu
 document.addEventListener('contextmenu', event => event.preventDefault());
-document.addEventListener('keydown', event => event.preventDefault())
+
+// prevent default key events
+const modifyKeys = new Set(["KeyR", "KeyP", "KeyF"])
+document.addEventListener('keydown', event => {
+  const modifier = event.ctrlKey || event.metaKey
+  if (modifier && modifyKeys.has(event.code) || event.code == 'F5')
+    event.preventDefault()
+})
