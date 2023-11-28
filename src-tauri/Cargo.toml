@@ -1,6 +1,6 @@
 [package]
 name = "sd-tagtool"
-version = "1.2.2"
+version = "1.2.3"
 description = "A Tauri App"
 authors = ["you"]
 license = ""
