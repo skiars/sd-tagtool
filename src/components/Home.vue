@@ -198,6 +198,7 @@ platform().then(name => {
       handle('open', 'KeyO')
       handle('save', 'KeyS')
       handle('reload', 'KeyR')
+      handle('quit', 'KeyQ')
       handle('undo', 'KeyZ')
       handle('redo', 'KeyZ', true)
     }, false);

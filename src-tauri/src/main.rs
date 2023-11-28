@@ -133,7 +133,8 @@ fn window_menu() -> Menu {
         .accelerator("CmdOrCtrl+S");
     let reload = CustomMenuItem::new("reload".to_string(), "Reload folder")
         .accelerator("CmdOrCtrl+R");
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit")
+        .accelerator("CmdOrCtrl+Q");
     let settings = CustomMenuItem::new("settings".to_string(), "Settings");
     let file = Submenu::new("File", Menu::new()
         .add_item(open).add_item(save).add_item(reload)
