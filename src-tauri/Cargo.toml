@@ -1,8 +1,8 @@
 [package]
 name = "sd-tagtool"
-version = "1.2.3"
-description = "A Tauri App"
-authors = ["you"]
+version = "1.2.4"
+description = "A stable diffusion training dataset tag editor."
+authors = ["skiars"]
 license = ""
 repository = ""
 edition = "2021"
