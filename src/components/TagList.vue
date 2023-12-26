@@ -4,18 +4,20 @@ import draggable from 'vuedraggable';
 import Tag from './Tag.vue'
 import ContextMenu from 'primevue/contextmenu'
 import Toast from 'primevue/toast'
-import { useToast } from 'primevue/usetoast'
+import {useToast} from 'primevue/usetoast'
 import * as state from '../lib/state'
 
 const props = defineProps<{
   tags: string[]
   nodrag?: true | boolean
-  editable?: true | boolean
+  editable?: true | boolean,
+  highlight?: string[]
 }>()
 
 const tags = ref<string[]>([])
 const contentTag = ref<string>('')
 const selectTags = ref<Set<number>>(new Set)
+const highlightTags = ref<Set<string>>(new Set)
 const menu = shallowRef()
 let pressCtrl = false, pressShift = false
 let selected = -1
@@ -45,7 +47,7 @@ const contentMenu = ref([
     label: 'Copy tag(s)',
     command() {
       navigator.clipboard.writeText(contentTagsText())
-      toast.add({ severity: 'success', detail: 'Tags has been copied.', life: 500 })
+      toast.add({severity: 'success', detail: 'Tags has been copied.', life: 500})
     }
   },
   {
@@ -64,6 +66,10 @@ const contentMenu = ref([
 watch(() => props.tags, x => {
   tags.value = x
   resetSelect()
+})
+
+watch(() => props.highlight, x => {
+  highlightTags.value = new Set(x)
 })
 
 function setupPalette(): object[] {
@@ -159,6 +165,7 @@ function onKeyUp(event: KeyboardEvent) {
         <Tag class="list-group-item tag-item" :style="tagStyle(element)"
              :label="element" :removable="props.editable"
              :select="selectTags.has(index)"
+             :highlight="highlightTags.has(element)"
              v-on:delete="emit('delete', [element])"
              v-on:dblclick="emit('active', [element])"
              v-on:click="onClick(index)"
@@ -166,7 +173,7 @@ function onKeyUp(event: KeyboardEvent) {
       </template>
     </draggable>
     <context-menu ref="menu" :model="contentMenu"/>
-    <Toast />
+    <Toast/>
   </div>
 </template>
 

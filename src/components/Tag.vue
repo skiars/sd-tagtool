@@ -7,7 +7,8 @@ import * as state from '../lib/state'
 const props = defineProps<{
   label: string,
   removable?: true | boolean,
-  select?: true | boolean
+  select?: true | boolean,
+  highlight?: true | boolean
 }>()
 
 const emit = defineEmits<{
@@ -36,9 +37,10 @@ async function translateTag() {
 </script>
 
 <template>
-  <div :class="['tag-frame', select ? 'tag-select' : undefined]">
+  <div :class="['tag-frame', select ? 'tag-select' : null, highlight ? 'tag-highlight' : null ]">
     <span class="tag-label">
-      <span>{{ props.label }}</span>
+      <span v-if="highlight">•</span>
+      <span>{{ label }}</span>
       <span class="translate-label" v-if="tr">&nbsp;{{ trLabel }} </span>
     </span>
     <svg v-if="removable" v-on:click="emit('delete')"
@@ -75,13 +77,17 @@ async function translateTag() {
   user-select: none; /* Standard syntax */
 }
 
-.tag-label {
-  margin: 0.1em 0.1em;
-}
-
 .tag-select {
   border-color: #57375d;
   filter: brightness(85%);
+}
+
+.tag-highlight {
+  padding-left: 0;
+}
+
+.tag-label {
+  margin: 0.1em 0.1em;
 }
 
 .translate-label {

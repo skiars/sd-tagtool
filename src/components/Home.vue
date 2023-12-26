@@ -62,7 +62,6 @@ async function openFolder(path?: string) {
     name: string,
     tags: string[]
   }[] = await invoke('listdir', {path: path})
-  console.log(files)
   const data: TagData[] = []
   for (let i in files) {
     const v = files[i]
@@ -236,7 +235,8 @@ invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.
           <image-filter v-model="tagsFilter"
                         :suggestions="allTags"
                         v-on:filter="onFilterApply"/>
-          <tag-list style="flex-grow: 1" :tags="selTags"
+          <tag-list style="flex-grow: 1"
+                    :tags="selTags" :highlight="tagsFilter"
                     editable :nodrag="selected.length > 1"
                     v-on:sorted="onTagsChange"
                     v-on:delete="e => onDeleteTags(selectedDataset(), e)"
@@ -247,7 +247,8 @@ invoke('load_tags_db', {}).then(() => console.log(`load tags db finished ${Date.
                       v-on:replaceTags="onReplaceTags"/>
         </splitter-panel>
         <splitter-panel class="column-flex">
-          <tag-list style="flex-grow: 1" :tags="allTags"
+          <tag-list style="flex-grow: 1"
+                    :tags="allTags" :highlight="tagsFilter"
                     :editable="editAllTags" nodrag
                     v-on:delete="e => onDeleteTags(dataset, e)"
                     v-on:active="e => onInsertTags({tags: e})"
