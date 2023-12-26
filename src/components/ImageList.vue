@@ -99,10 +99,14 @@ const resizeObserver = new ResizeObserver((event) => {
 onMounted(() => {
   resizeObserver.observe(panel.value as HTMLElement)
   updateOverlayPanelSize()
+  window.addEventListener("keydown", onKeyDown)
+  window.addEventListener("keyup", onKeyUp)
 })
 
 onUnmounted(() => {
   resizeObserver.unobserve(panel.value as HTMLElement)
+  window.removeEventListener("keydown", onKeyDown)
+  window.removeEventListener("keyup", onKeyUp)
 })
 
 function updateOverlayPanelSize() {
@@ -120,9 +124,8 @@ function updateOverlayPanelSize() {
 </script>
 
 <template>
-  <div ref="panel" class="image-list"
-       v-on:mouseenter="onMouseEnter" v-on:mouseleave="onMouseLeave"
-       :tabindex="-1" v-on:keydown="onKeyDown" v-on:keyup="onKeyUp">
+  <div ref="panel" class="image-list" :tabindex="-1"
+       v-on:mouseenter="onMouseEnter" v-on:mouseleave="onMouseLeave">
     <div v-for="(data, index) in props.dataset" :style="itemStyle"
          :class="['item', selectedSet.has(index) ? 'selected' : undefined]"
          v-on:mouseover="previewSrc = data.url" v-on:click="onClick(index)">

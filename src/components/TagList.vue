@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, shallowRef, watch, onUnmounted} from 'vue'
+import {ref, shallowRef, watch, onUnmounted, onMounted} from 'vue'
 import draggable from 'vuedraggable';
 import Tag from './Tag.vue'
 import ContextMenu from 'primevue/contextmenu'
@@ -149,10 +149,20 @@ function onKeyUp(event: KeyboardEvent) {
   if (event.key == 'Shift')
     pressShift = false
 }
+
+onMounted(() => {
+  window.addEventListener("keydown", onKeyDown)
+  window.addEventListener("keyup", onKeyUp)
+})
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", onKeyDown)
+  window.removeEventListener("keyup", onKeyUp)
+})
 </script>
 
 <template>
-  <div class="frame" :tabindex="-1" v-on:keydown="onKeyDown" v-on:keyup="onKeyUp">
+  <div class="frame" :tabindex="-1">
     <draggable class="tag-list"
                v-model="tags"
                :disabled="props.nodrag"
