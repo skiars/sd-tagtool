@@ -23,9 +23,7 @@ struct CmdState {
 
 #[tauri::command]
 fn listdir(path: &str) -> Vec<TagData> {
-    fs::read_dir(path)
-        .unwrap()
-        .filter_map(|e| e.ok().map(|e| e.path()))
+    tagutils::listdir_images(path).iter()
         .filter_map(tagutils::read_tags)
         .collect::<Vec<_>>()
 }
@@ -33,17 +31,15 @@ fn listdir(path: &str) -> Vec<TagData> {
 #[tauri::command]
 fn list_isolated_txt(path: &str) -> Vec<String> {
     let images: HashSet<String> = HashSet::from_iter(
-        tagutils::listdir_images(path).iter()
-            .map(|path|
-                path.file_stem().unwrap().to_str().unwrap().to_string()
-            )
-    );
-    fs::read_dir(path)
-        .unwrap()
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter_map(|path| {
-            tagutils::is_isolated_txt(&images, path.clone()).then_some(
-                path.file_name().unwrap().to_str().unwrap().to_string()
+        tagutils::listdir_images(path).iter().map(|e|
+            PathBuf::from(e).file_stem().unwrap().to_str().unwrap().to_string()
+        ));
+    tagutils::listdir_files(path).iter()
+        .filter_map(|abs_path| {
+            abs_path.strip_prefix(&path).ok().and_then(|path|
+                tagutils::is_isolated_txt(&images, &path).then(|| ()).and(
+                    path.to_str().map(|e| e.to_string())
+                )
             )
         })
         .collect::<Vec<_>>()

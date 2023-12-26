@@ -9,8 +9,17 @@ import ImageList from './ImageList.vue'
 import TagList from './TagList.vue'
 import TagEditor from './TagEditor.vue'
 import ImageFilter from './ImageFilter.vue'
-import {TagData, EditorHistory, collectTags, deleteTags, insertTags, FilterMode, replaceTags} from '../lib/utils'
 import * as state from '../lib/state'
+import {
+  TagData,
+  EditAction,
+  EditorHistory,
+  collectTags,
+  deleteTags,
+  insertTags,
+  FilterMode,
+  replaceTags
+} from '../lib/utils'
 
 import {open} from '@tauri-apps/api/dialog'
 import {invoke} from '@tauri-apps/api/tauri'
@@ -27,7 +36,7 @@ import {deleteIsolatedTxt} from './DeleteIsolatedTxt'
 
 let history: EditorHistory = new EditorHistory
 let workDir: string = ''
-let editState: Array<any> | undefined = undefined
+let editState: EditAction[] | undefined = undefined
 const dataset = ref<TagData[]>([])
 const filteredDataset = ref<TagData[]>([])
 const tagsFilter = ref<string[]>([])
@@ -53,6 +62,7 @@ async function openFolder(path?: string) {
     name: string,
     tags: string[]
   }[] = await invoke('listdir', {path: path})
+  console.log(files)
   const data: TagData[] = []
   for (let i in files) {
     const v = files[i]

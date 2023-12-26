@@ -5,7 +5,7 @@ export interface TagData {
   tags: string[]
 }
 
-interface EditAction {
+export interface EditAction {
   index: number,
   tags: string[]
 }

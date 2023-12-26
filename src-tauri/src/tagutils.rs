@@ -39,48 +39,61 @@ fn is_image_file(ext: &OsStr) -> bool {
     ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "webp"
 }
 
-pub fn read_tags(path: PathBuf) -> Option<TagData> {
-    path.extension().and_then(|ext| {
-        if is_image_file(ext) {
-            path.file_name().map(|e| {
-                let name = e.to_os_string().into_string().unwrap();
-                TagData {
-                    name,
-                    tags: get_tags(path.to_owned()),
-                }
-            })
-        } else {
-            None
-        }
+pub fn read_tags<P: AsRef<Path> + ToString>(path: P) -> Option<TagData> {
+    PathBuf::from(path.as_ref()).extension().and_then(|ext| {
+        is_image_file(ext).then_some(TagData {
+            name: path.to_string(),
+            tags: get_tags(&path),
+        })
     })
 }
 
-pub fn listdir_images(path: &str) -> Vec<PathBuf> {
-    fs::read_dir(path).unwrap()
+pub fn listdir_files<P: AsRef<Path>>(path: P) -> Vec<PathBuf> {
+    fs::read_dir(&path).unwrap()
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter_map(|e|
-            e.clone().extension().and_then(|ext| {
-                is_image_file(ext).then_some(e)
+            if e.is_dir() {
+                Some(listdir_files(&e))
+            } else if e.is_file() {
+                Some(vec![e])
+            } else {
+                None
+            }
+        )
+        .flatten()
+        .collect::<Vec<_>>()
+}
+
+pub fn listdir_images<P: AsRef<Path>>(path: P) -> Vec<String> {
+    listdir_files(&path).iter()
+        .filter_map(|e|
+            e.extension().and_then(|ext| {
+                is_image_file(&ext).then(|| ()).and(
+                    e.strip_prefix(&path).ok().and_then(|e|
+                        e.to_str().map(|e| e.to_string())
+                    ))
             })
         )
         .collect::<Vec<_>>()
 }
 
-fn is_image_exist(images: &HashSet<String>, path: PathBuf) -> bool {
+fn is_image_exist(images: &HashSet<String>, path: &PathBuf) -> bool {
     path.file_stem().and_then(|e|
         images.contains(e.to_str().unwrap()).then_some(())
     ).is_some()
 }
 
-pub fn is_isolated_txt(images: &HashSet<String>, path: PathBuf) -> bool {
-    path.clone().extension().and_then(|ext|
-        (ext == "txt" && !is_image_exist(images, path)).then_some(())
+pub fn is_isolated_txt<P: AsRef<Path>>(images: &HashSet<String>, path: P) -> bool {
+    let path_buf = PathBuf::from(path.as_ref());
+    path_buf.extension().and_then(|ext|
+        (ext == "txt" && !is_image_exist(images, &path_buf)).then_some(())
     ).is_some()
 }
 
-fn get_tags(mut path: PathBuf) -> Vec<String> {
-    path.set_extension("txt");
-    fs::read_to_string(path).map_or(Vec::new(), |e| parse_tags(e.as_str()))
+fn get_tags<P: AsRef<Path>>(path: P) -> Vec<String> {
+    let mut path_buf = PathBuf::from(path.as_ref());
+    path_buf.set_extension("txt");
+    fs::read_to_string(path_buf).map_or(Vec::new(), |e| parse_tags(e.as_str()))
 }
 
 pub fn parse_tags(txt: &str) -> Vec<String> {
