@@ -39,11 +39,11 @@ fn is_image_file(ext: &OsStr) -> bool {
     ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "webp"
 }
 
-pub fn read_tags<P: AsRef<Path> + ToString>(path: P) -> Option<TagData> {
+pub fn read_tags<P: AsRef<Path> + ToString>(path: P, base: impl AsRef<Path>) -> Option<TagData> {
     PathBuf::from(path.as_ref()).extension().and_then(|ext| {
         is_image_file(ext).then_some(TagData {
             name: path.to_string(),
-            tags: get_tags(&path),
+            tags: get_tags(&mut base.as_ref().join(path)),
         })
     })
 }
@@ -90,10 +90,9 @@ pub fn is_isolated_txt<P: AsRef<Path>>(images: &HashSet<String>, path: P) -> boo
     ).is_some()
 }
 
-fn get_tags<P: AsRef<Path>>(path: P) -> Vec<String> {
-    let mut path_buf = PathBuf::from(path.as_ref());
-    path_buf.set_extension("txt");
-    fs::read_to_string(path_buf).map_or(Vec::new(), |e| parse_tags(e.as_str()))
+fn get_tags(path: &mut PathBuf) -> Vec<String> {
+    path.set_extension("txt");
+    fs::read_to_string(path).map_or(Vec::new(), |e| parse_tags(e.as_str()))
 }
 
 pub fn parse_tags(txt: &str) -> Vec<String> {

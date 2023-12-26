@@ -23,8 +23,8 @@ struct CmdState {
 
 #[tauri::command]
 fn listdir(path: &str) -> Vec<TagData> {
-    tagutils::listdir_images(path).iter()
-        .filter_map(tagutils::read_tags)
+    tagutils::listdir_images(&path).iter()
+        .filter_map(|e| tagutils::read_tags(e, path))
         .collect::<Vec<_>>()
 }
 
